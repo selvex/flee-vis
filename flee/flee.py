@@ -661,7 +661,7 @@ class Ecosystem:
     new_weights = np.array([])
 
     for i in range(0, len(self.conflict_zones)):
-      if conflict_zones[i].name is not name:
+      if self.conflict_zones[i].name is not name:
         new_conflict_zones += [self.conflict_zones[i]]
         new_conflict_zone_names += [self.conflict_zone_names[i]]
         new_weights = np.append(new_weights, [self.conflict_weights[i]])
@@ -747,7 +747,7 @@ class Ecosystem:
     new_agents = []
     for i in range(0, len(self.agents)):
       if self.agents[i].location.name not in location_names:
-        new_agents += agents[i] #agent is preserved in ecosystem.
+        new_agents += self.agents[i] #agent is preserved in ecosystem.
       else:
         self.agents[i].location.numAgents -= 1 #agent is removed from exosystem and number of agents in location drops by one.
     self.agents = new_agents

@@ -4,6 +4,7 @@ from datamanager import DataTable #DataTable.subtract_dates()
 import numpy as np
 import outputanalysis.analysis as a
 import sys
+import visualization.vis
 
 def linkBF(e):
   # bing based
@@ -210,6 +211,7 @@ if __name__ == "__main__":
 
   t_retrofitted = 0
 
+  heatmap = visualization.vis.HeatMapManager()
   for t in range(0,end_time):
 
     e.refresh_conflict_weights()
@@ -325,5 +327,6 @@ if __name__ == "__main__":
       output += ",0,0,0,0,0,0,0"
 
     print(output)
-
+    heatmap.addTimeStep(e.locations)
+  heatmap.saveVisData()
 

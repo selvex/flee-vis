@@ -14,11 +14,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.16.4",
     "heatmap.js": "^2.0.5",
     "leaflet": "^1.4.0"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "^5.8.1",
-    "jquery": "^3.3.1"
+    "jquery": "^3.3.1",
+    "leaflet.awesome-markers": "^2.0.5"
   }
 }

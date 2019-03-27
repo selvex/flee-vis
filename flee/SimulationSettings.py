@@ -30,7 +30,7 @@ class SimulationSettings:
   UseIDPMode = False
 
   CreateVisData = True
-  DefaultVisFile = Path("visualization/data/flee_vis.json")
+  DefaultVisPath = Path("visualization/public/assets/data/test")
 
   def ReadFromCSV(csv_name):
     """

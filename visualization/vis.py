@@ -1,35 +1,65 @@
 from flee import SimulationSettings
-from flee.flee import Person
+from flee.flee import Location
+from flee.flee import Link
 import json
 
 class VisManager:
   def __init__(self, output_file = ''):
     if output_file == '':
-      output_file = SimulationSettings.SimulationSettings.DefaultVisFile
+      output_file = SimulationSettings.SimulationSettings.DefaultVisPath / "all.json"
     self.output_file = open(output_file, "w")
-    self.data = [self.visFormat()]
+    if not self.output_file.writable():
+      raise ValueError("Cant write to visualization output file")
+    self.data = []
 
   def visFormat(self):
     return {
       'actors': [],
-      'locations': []
+      'locations': [],
+      'links': []
     }
 
-  def addTimeStep(self, t):
-    if len(self.data) < t:
-      self.data.append(self.visFormat())
+  def addTimeStep(self):
+    self.data.append(self.visFormat())
+    return len(self.data) - 1
+
+  def addLocationDataAtTime(self, t, locations):
+    formatted_locations = []
+    formatted_links = []
+    for id, location in enumerate(locations):
+      formatted_locations.append({
+        "lat": location.x,
+        "lng": location.y,
+        "pop": location.pop,
+        "refugees": location.numAgents,
+        "name": location.name,
+        "camp": location.camp,
+        "capacity": location.capacity
+      })
+
+      for link in location.links:
+        formatted_links.append({
+          "from": location.name,
+          "to": link.endpoint.name,
+          "distance": link.distance,
+          "count": link.numAgents,
+          "forced": link.forced_redirection
+        })
+    self.data[t]["locations"] = formatted_locations
+    self.data[t]["links"] = formatted_links
 
   def addPersonDataAtTime(self, t, person):
     self.data[t]['actors'].append(person.getVisData())
 
-  def __del__(self):
+  def saveVisData(self):
+    json.dump(self.data, self.output_file)
     self.output_file.close()
 
 
 class HeatMapManager:
   def __init__(self, output_file = ''):
     if output_file == '':
-      output_file = SimulationSettings.SimulationSettings.DefaultVisFile
+      output_file = SimulationSettings.SimulationSettings.DefaultVisPath / "heatmap.json"
     self.output_file = open(output_file, "w")
     if not self.output_file.writable():
       raise ValueError("Cant write to visualization output file")
@@ -37,11 +67,13 @@ class HeatMapManager:
 
   def addTimeStep(self, locations):
     formatted = []
+    # type: Location
     for id, location in enumerate(locations):
       formatted.append({
         "lat": location.x,
         "lng": location.y,
-        "count": location.numAgents
+        "count": location.numAgents,
+        "name": location.name
       })
 
     self.data.append(formatted)

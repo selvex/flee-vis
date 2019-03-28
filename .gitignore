@@ -102,3 +102,4 @@ ENV/
 
 .idea
 node_modules
+visualization/public/assets/data/test

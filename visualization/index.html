@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" ng-app="fleeVis">
 <head>
   <!-- Required meta tags -->
   <meta charset="utf-8">
@@ -45,14 +45,16 @@
         </div>
       </div>
     </header>
-    <main role="main">
+    <main role="main" ng-controller="fleeVisController">
 
       <section class="jumbotron text-center">
         <div class="container">
           <h1 class="jumbotron-heading">Visualization of refugee movements</h1>
           <p id="wc-container" class="lead text-muted">Conflict: Mali</p>
           <p>
-            <a href="#" class="btn btn-primary my-2">Main call to action</a>
+            <button type="button" class="btn btn-primary my-2" ng-click="getData('mali')">
+              Main call to action
+            </button>
             <a href="#" class="btn btn-secondary my-2">Secondary action</a>
           </p>
         </div>
@@ -72,94 +74,97 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-4">
-              <div class="card mb-4 box-shadow">
-                <img class="card-img-top" src="assets/img/wc.jpg" alt="Card image cap">
-                <div class="card-body">
-                  <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                      <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
+          </div>
+          <div class="row mb-4">
+            <div class="col-md-12 mx-auto d-flex flex-column">
+              <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                <div class="btn-group">
+                  <button type="button" class="btn btn-secondary" ng-click="beginning()">
+                    <i class="fas fa-fast-backward"></i>
+                  </button>
+                  <button type="button" class="btn btn-secondary" ng-click="back()">
+                    <i class="fas fa-step-backward"></i>
+                  </button>
+                  <button type="button" class="btn btn-secondary" ng-click="play()" ng-hide="playing">
+                    <i class="fas fa-play"></i>
+                  </button>
+                  <button type="button" class="btn btn-secondary" ng-click="stop()" ng-show="playing">
+                    <i class="fas fa-pause"></i>
+                  </button>
+                  <button type="button" class="btn btn-secondary" ng-click="forward()">
+                    <i class="fas fa-step-forward"></i>
+                  </button>
+                  <button type="button" class="btn btn-secondary" ng-click="end()">
+                    <i class="fas fa-fast-forward"></i>
+                  </button>
+                </div>
+                <div class="input-group flex-grow-1">
+                  <div class="input-group-prepend">
+                    <div class="input-group-text" id="currentDate">{{ formatDate(currentDate) }}</div>
+                  </div>
+                  <input ng-change="myUpdateData()" ng-model="dataSet.currentStep" type="range" min="0" max="{{ dataSet.endStep }}" value="0" class="flex-grow-1 mx-2" id="timeline"  aria-label="Simulation timeline" aria-describedby="timeline">
+                  <div class="input-group-append">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <i class="fas fa-tachometer-alt"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                      <form class="px-4 py-3">
+                        <div class="form-group">
+                          <label for="simSpeedInputText">Simulation Speed</label>
+                          <input ng-model="simulationSpeed" type="number" max="6" class="form-control" id="simSpeedInputText" placeholder="1.0">
+                          <input ng-model="simulationSpeed" type="range" step="0.5" min="0.5" max="6" value="1" class="mt-2 w-100" id="simSpeedInputRange"  aria-label="Current simulation speed" aria-describedby="currentSpeed">
+                        </div>
+                      </form>
                     </div>
-                    <small class="text-muted">9 mins</small>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card mb-4 box-shadow">
-                <img class="card-img-top" src="assets/img/wc.jpg" alt="Card image cap">
-                <div class="card-body">
-                  <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                      <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                    </div>
-                    <small class="text-muted">9 mins</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card mb-4 box-shadow">
-                <img class="card-img-top" src="assets/img/wc.jpg" alt="Card image cap">
-                <div class="card-body">
-                  <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                      <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                    </div>
-                    <small class="text-muted">9 mins</small>
-                  </div>
-                </div>
-              </div>
-            </div>
 
+              </div>
+            </div>
+          </div>
+          <div class="row">
             <div class="col-md-4">
-              <div class="card mb-4 box-shadow">
-                <img class="card-img-top" src="assets/img/wc.jpg" alt="Card image cap">
-                <div class="card-body">
-                  <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                      <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                    </div>
-                    <small class="text-muted">9 mins</small>
-                  </div>
-                </div>
+              <div class="card">
+                <table class="table table-hover mb-0">
+                  <tr>
+                    <th>Name</th>
+                    <th>Population</th>
+                    <th>Refugees</th>
+                  </tr>
+                  <tr ng-repeat="location in locations" ng-if="!location.camp">
+                    <td>{{ location.name }}</td>
+                    <td>{{ location.pop }}</td>
+                    <td>{{ location.refugees }}</td>
+                  </tr>
+                </table>
               </div>
             </div>
             <div class="col-md-4">
-              <div class="card mb-4 box-shadow">
-                <img class="card-img-top" src="assets/img/wc.jpg" alt="Card image cap">
-                <div class="card-body">
-                  <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                      <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                    </div>
-                    <small class="text-muted">9 mins</small>
-                  </div>
-                </div>
+              <div class="card">
+                <table class="table table-hover mb-0">
+                  <tr>
+                    <th>Name</th>
+                    <th>Capacity</th>
+                    <th>Refugees</th>
+                  </tr>
+                  <tr ng-repeat="location in locations" ng-if="location.camp">
+                    <td>{{ location.name }}</td>
+                    <td>{{ location.capacity }}</td>
+                    <td class="{{ location.capacity - 50 <= location.refugees ? 'text-danger' : '' }}">{{ location.refugees }}</td>
+                  </tr>
+                </table>
               </div>
             </div>
             <div class="col-md-4">
-              <div class="card mb-4 box-shadow">
-                <img class="card-img-top" src="assets/img/wc.jpg" alt="Card image cap">
+              <div class="card">
                 <div class="card-body">
-                  <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div class="btn-group">
-                      <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                      <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                    </div>
-                    <small class="text-muted">9 mins</small>
-                  </div>
+                  <h5 class="card-title">Debug Buttons</h5>
+                  <button type="button" class="btn btn-primary" ng-click="advance()">
+                    Advance
+                  </button>
+                  <button type="button" class="btn btn-primary" ng-click="getData()">
+                    getData
+                  </button>
                 </div>
               </div>
             </div>
@@ -180,6 +185,7 @@
     </footer>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="assets/js/angular.min.js"></script>
     <script src="assets/js/classes.js"></script>
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
@@ -188,5 +194,6 @@
     <script src="assets/js/leaflet-heatmap.js"></script>
     <script src="assets/js/leaflet.awesome-markers.min.js"></script>
     <script src="assets/js/flee-vis.js"></script>
+    <script src="assets/js/controller/flee-vis-controller.js"></script>
   </body>
 </html>

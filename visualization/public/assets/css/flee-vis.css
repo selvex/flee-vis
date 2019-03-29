@@ -33,3 +33,8 @@ footer p {
 #map {
   height: 720px;
 }
+
+.flex-grow-1
+{
+  flex-grow: 1;
+}

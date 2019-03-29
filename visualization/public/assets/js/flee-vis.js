@@ -133,4 +133,3 @@ function startHeatmap()
     }, 50);
   });
 }
-getData();

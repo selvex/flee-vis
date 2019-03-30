@@ -6,6 +6,8 @@ class TimedData
     this.data = this.buildConfig([]);
     
     this.currentStep = 0;
+    this.endStep = data.length - 1;
+
     this.internal = data;
   }
   
@@ -42,7 +44,7 @@ class TimedData
   
   end()
   {
-    return this.currentStep === this.internal.length - 1;
+    return this.currentStep === this.endStep;
   }
 }
 

@@ -39,10 +39,18 @@ class VisManager:
 
       for link in location.links:
         formatted_links.append({
-          "from": location.name,
-          "to": link.endpoint.name,
+          "from": {
+            "name": location.name,
+            "lat": location.x,
+            "lng": location.y
+          },
+          "to": {
+            "name": link.endpoint.name,
+            "lat": link.endpoint.x,
+            "lng": link.endpoint.y
+          },
           "distance": link.distance,
-          "count": link.numAgents,
+          "refugees": link.numAgents,
           "forced": link.forced_redirection
         })
     self.data[t]["locations"] = formatted_locations

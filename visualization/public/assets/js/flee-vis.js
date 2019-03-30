@@ -5,6 +5,8 @@ var dbg = Object.create(null);
 var data = Object.create(null);
 var locationMapping = Object.create(null);
 
+var circleVisLayer = L.layerGroup();
+var lineVisLayer = L.layerGroup();
 var cities = L.layerGroup();
 var camps = L.layerGroup();
 
@@ -32,7 +34,7 @@ var cfg =
   // which field name in your data represents the longitude - default "lng"
   lngField: 'lng',
   // which field name in your data represents the data value - default "value"
-  valueField: 'count'
+  valueField: 'refugees'
 };
 
 var heatmapLayer = new HeatmapOverlay(cfg);
@@ -40,7 +42,7 @@ var heatmapLayer = new HeatmapOverlay(cfg);
 var mymap = L.map('map', {
   center: new L.LatLng(16.3700359, -2.2900239),
   zoom: 6,
-  layers: [osm, heatmapLayer, cities, camps]
+  layers: [osm, cities, camps, circleVisLayer, lineVisLayer]
 });
 
 
@@ -51,7 +53,9 @@ var baseLayers = {
 var overlayLayers = {
   "Heatmap": heatmapLayer,
   "Cities": cities,
-  "Camps": camps
+  "Camps": camps,
+  "Circles": circleVisLayer,
+  "Routes": lineVisLayer
 };
 
 L.control.layers(baseLayers, overlayLayers).addTo(mymap);
@@ -105,31 +109,5 @@ function getData()
       });
       locationMapping[location.name] = { id: i, marker: 1 };
     }
-  });
-}
-
-
-var heatmapManager = Object.create(null);
-
-function startHeatmap()
-{
-  $.ajax({
-    url: "/data/test",
-    method: "GET"
-  }).done(function(msg) {
-    let data_set = new TimedHeatmapData(msg);
-    heatmapManager = new HeatmapManager(heatmapLayer, data_set);
-    heatmapManager.playing = true;
-    let loopID = setInterval(function()
-    {
-      if (heatmapManager.playing)
-      {
-        heatmapManager.advance();
-      }
-      else
-      {
-        clearInterval(loopID);
-      }
-    }, 50);
   });
 }

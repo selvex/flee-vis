@@ -1,17 +1,18 @@
 var app = angular.module('fleeVis', []);
 app.config(['$provide', function($provide) {
-  $provide.factory('circleVis', function() {
-    // factory function body that constructs shinyNewServiceInstance
-    return new CircleVisManager(mymap, circleVisLayer, lineVisLayer);
+  $provide.factory('mapManager', function() {
+    return new MapManager();
   });
-  $provide.factory('heatmapVis', function() {
-    // factory function body that constructs shinyNewServiceInstance
-    return new HeatmapManager(mymap, heatmapLayer);
-  });
+  $provide.factory('circleVis', ['mapManager', function(mapManager) {
+    return new CircleVisManager(mapManager.map, mapManager.circleVisLayer, mapManager.lineVisLayer);
+  }]);
+  $provide.factory('heatmapVis', ['mapManager', function(mapManager) {
+    return new HeatmapManager(mapManager.map, mapManager.heatmapLayer);
+  }]);
 }]);
 
 
-app.controller('fleeVisController', ['$scope', '$http', '$interval', 'circleVis', 'heatmapVis', function($scope, $http, $interval, circleVis, heatmapVis) {
+app.controller('fleeVisController', ['$scope', '$http', '$interval', 'mapManager','circleVis', 'heatmapVis', function($scope, $http, $interval, mapManager, circleVis, heatmapVis) {
   $scope.popups = [];
   $scope.playing = false;
   $scope.endStep = 500;
@@ -21,24 +22,35 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', 'circleVis'
   $scope.simulationSpeed = 1.0;
   $scope.msPerTick = 1000;
   
-  /**
+  $scope.availableSimulations = Object.create(null);
+  $scope.availableSimulations['Mali'] = {name: "Mali", description: "Test descr Mali"};
+  $scope.availableSimulations['CAR'] = {name: "CAR", description: "Test descr CAR"};
+  
+  $scope.selectedSimulation = $scope.availableSimulations['Mali'];
+    
+    
+    /**
    * Retrieves the specified data from the server. Additionally initializes all the marker on the map
    * and stores references to each individual popup to update their text when the model changes.
-   * @param target String representing the conflict data to use (unused for now)
    */
-  $scope.getData = function(target) {
-    console.log("Called getData Successfully with target " + target);
+  $scope.getData = function() {
+    console.log("Called getData Successfully with target " + $scope.selectedSimulation.name);
     $http({
       method: 'get',
       url: '/data/all'
     }).then(function successCallback(response) {
+      // clear everything so we have a clean map
+      circleVis.clearLayers();
+      mapManager.cities.clearLayers();
+      mapManager.camps.clearLayers();
+      
       $scope.dataSet = new TimedData(response.data);
       let now = $scope.dataSet.getCurrentData();
       for (let i = 0; i < now.locations.length; i++)
       {
         let location = now.locations[i];
         $scope.initMarker(location, i);
-        locationMapping[location.name] = { id: i, marker: 1 };
+        globals.locationMapping[location.name] = { id: i, marker: 1 };
         circleVis.createCircle(location);
       }
       for (let i = 0; i < now.links.length; i++)
@@ -106,17 +118,17 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', 'circleVis'
     var marker = null;
     if (location.camp)
     {
-      marker = L.marker([location.lat, location.lng], { icon: campMarker }).bindPopup(location.name + "<br>" +
+      marker = L.marker([location.lat, location.lng], { icon: mapManager.campMarker }).bindPopup(location.name + "<br>" +
         "Capacity: " + location.capacity + "<br>" +
         "Refugees: " + location.refugees);
-      camps.addLayer(marker);
+      mapManager.camps.addLayer(marker);
     }
     else
     {
-      marker = L.marker([location.lat, location.lng], { icon: cityMarker }).bindPopup(location.name + "<br>" +
+      marker = L.marker([location.lat, location.lng], { icon: mapManager.cityMarker }).bindPopup(location.name + "<br>" +
         "Population: " + location.pop + "<br>" +
         "Refugees: " + location.refugees);
-      cities.addLayer(marker);
+      mapManager.cities.addLayer(marker);
     }
     $scope.popups.push(marker.getPopup());
   };
@@ -232,5 +244,9 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', 'circleVis'
     let day = date.getDate();
     if (day < 10) { day = "0" + day; }
     return date.getFullYear() + "-" + month + "-" + day;
+  };
+  
+  $scope.dbg = function() {
+    console.log($scope.selectedSimulation);
   };
 }]);

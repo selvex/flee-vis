@@ -147,6 +147,12 @@ class CircleVisManager
     };
   }
   
+  clearLayers()
+  {
+    this.circleLayer.clearLayers();
+    this.lineLayer.clearLayers();
+  }
+  
   createAll(locations)
   {
     for (let i = 0; i < locations.length; i++)

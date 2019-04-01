@@ -1,5 +1,17 @@
-angular.module('fleeVis', [])
-.controller('fleeVisController', ['$scope', '$http', '$interval', function($scope, $http, $interval) {
+var app = angular.module('fleeVis', []);
+app.config(['$provide', function($provide) {
+  $provide.factory('circleVis', function() {
+    // factory function body that constructs shinyNewServiceInstance
+    return new CircleVisManager(mymap, circleVisLayer, lineVisLayer);
+  });
+  $provide.factory('heatmapVis', function() {
+    // factory function body that constructs shinyNewServiceInstance
+    return new HeatmapManager(mymap, heatmapLayer);
+  });
+}]);
+
+
+app.controller('fleeVisController', ['$scope', '$http', '$interval', 'circleVis', 'heatmapVis', function($scope, $http, $interval, circleVis, heatmapVis) {
   $scope.popups = [];
   $scope.playing = false;
   $scope.endStep = 500;
@@ -7,6 +19,7 @@ angular.module('fleeVis', [])
   $scope.startDate = new Date("2012-02-29");
   $scope.currentDate = $scope.startDate;
   $scope.simulationSpeed = 1.0;
+  $scope.msPerTick = 1000;
   
   /**
    * Retrieves the specified data from the server. Additionally initializes all the marker on the map
@@ -26,6 +39,11 @@ angular.module('fleeVis', [])
         let location = now.locations[i];
         $scope.initMarker(location, i);
         locationMapping[location.name] = { id: i, marker: 1 };
+        circleVis.createCircle(location);
+      }
+      for (let i = 0; i < now.links.length; i++)
+      {
+        circleVis.createLine(now.links[i]);
       }
       $scope.locations = now.locations;
       $scope.endStep = $scope.dataSet.endStep;
@@ -48,11 +66,34 @@ angular.module('fleeVis', [])
       return;
     }
     $scope.locations = $scope.dataSet.getCurrentData().locations;
+    $scope.links = $scope.dataSet.getCurrentData().links;
     $scope.currentDate = $scope.simStepToDate();
+    
+    circleVis.reset();
+  
+    if (heatmapVis.isActive())
+    {
+      heatmapVis.updateHeatmap($scope.locations);
+    }
     
     for (let i = 0; i < $scope.locations.length; i++)
     {
-      $scope.updatePopup($scope.popups[i], $scope.locations[i]);
+      let location = $scope.locations[i];
+      
+      $scope.updatePopup($scope.popups[i], location);
+      
+      if (circleVis.isCircleActive())
+      {
+        circleVis.createCircle(location);
+      }
+    }
+  
+    if (circleVis.isLineActive())
+    {
+      for (let i = 0; i < $scope.links.length; i++)
+      {
+        circleVis.createLine($scope.links[i])
+      }
     }
   };
   
@@ -159,7 +200,7 @@ angular.module('fleeVis', [])
           console.log("Simulation ended");
           $interval.cancel(promise);
         }
-      }, 200 / $scope.simulationSpeed);
+      }, $scope.msPerTick / $scope.simulationSpeed);
       promise.then(function() {
         console.log("Promise: Interval resolved");
         $scope.playing = false;

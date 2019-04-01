@@ -112,7 +112,7 @@
                         <div class="form-group">
                           <label for="simSpeedInputText">Simulation Speed</label>
                           <input ng-model="simulationSpeed" type="number" max="6" class="form-control" id="simSpeedInputText" placeholder="1.0">
-                          <input ng-model="simulationSpeed" type="range" step="0.5" min="0.5" max="6" value="1" class="mt-2 w-100" id="simSpeedInputRange"  aria-label="Current simulation speed" aria-describedby="currentSpeed">
+                          <input ng-model="simulationSpeed" type="range" step="0.5" min="0.5" max="15" value="1" class="mt-2 w-100" id="simSpeedInputRange"  aria-label="Current simulation speed" aria-describedby="currentSpeed">
                         </div>
                       </form>
                     </div>
@@ -193,6 +193,7 @@
     <script src="assets/js/heatmap.min.js"></script>
     <script src="assets/js/leaflet-heatmap.js"></script>
     <script src="assets/js/leaflet.awesome-markers.min.js"></script>
+    <script src="assets/js/leaflet.polylineoffset.js"></script>
     <script src="assets/js/flee-vis.js"></script>
     <script src="assets/js/controller/flee-vis-controller.js"></script>
   </body>

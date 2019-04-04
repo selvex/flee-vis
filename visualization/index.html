@@ -21,13 +21,13 @@
           <div class="row">
             <div class="col-sm-8 col-md-7 py-4">
               <h4 class="text-white">About</h4>
-              <p class="text-muted">Information is added here</p>
+              <p class="text-muted">Visualization of data extracted from and simulated by the <a href="https://github.com/djgroen/flee-release">Flee agent-based modelling toolkit</a>.</p>
             </div>
             <div class="col-sm-4 offset-md-1 py-4">
               <h4 class="text-white">Contact</h4>
               <ul class="list-unstyled">
                 <li><a href="#" class="text-white">Author Name</a></li>
-                <li><a href="#" class="text-white">Author Name</a></li>
+                <li><a href="#" class="text-white">Contact Information</a></li>
               </ul>
             </div>
           </div>
@@ -36,7 +36,7 @@
       <div class="navbar navbar-dark bg-dark box-shadow">
         <div class="container d-flex justify-content-between">
           <a href="#" class="navbar-brand d-flex align-items-center">
-            <i class="fas fa-cloud mr-2"></i>
+            <i class="fas fa-project-diagram mr-2"></i>
             <strong>Flee Visualization</strong>
           </a>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarHeader" aria-controls="navbarHeader" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,13 +50,17 @@
       <section class="jumbotron text-center">
         <div class="container">
           <h1 class="jumbotron-heading">Visualization of refugee movements</h1>
-          <p id="wc-container" class="lead text-muted">Conflict: Mali</p>
-          <p>
-            <button type="button" class="btn btn-primary my-2" ng-click="getData('mali')">
-              Main call to action
-            </button>
-            <a href="#" class="btn btn-secondary my-2">Secondary action</a>
-          </p>
+          <p id="wc-container" class="lead text-muted">Conflict: {{ selectedSimulation.name }}</p>
+          <div class="input-group mx-auto">
+            <select name="selectedSimulation" ng-model="selectedSimulation" class="form-control">
+              <option ng-repeat="simulation in availableSimulations" ng-value="{{ simulation }}">{{ simulation.name }}</option>
+            </select>
+            <div class="input-group-append">
+              <button type="button" class="btn btn-primary" ng-click="getData()">
+                Load Dataset
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -79,22 +83,22 @@
             <div class="col-md-12 mx-auto d-flex flex-column">
               <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
                 <div class="btn-group">
-                  <button type="button" class="btn btn-secondary" ng-click="beginning()">
+                  <button type="button" class="btn btn-secondary btn-vis-player" ng-click="beginning()">
                     <i class="fas fa-fast-backward"></i>
                   </button>
-                  <button type="button" class="btn btn-secondary" ng-click="back()">
+                  <button type="button" class="btn btn-secondary btn-vis-player" ng-click="back()">
                     <i class="fas fa-step-backward"></i>
                   </button>
-                  <button type="button" class="btn btn-secondary" ng-click="play()" ng-hide="playing">
+                  <button type="button" class="btn btn-secondary btn-vis-player" ng-click="play()" ng-hide="playing">
                     <i class="fas fa-play"></i>
                   </button>
-                  <button type="button" class="btn btn-secondary" ng-click="stop()" ng-show="playing">
+                  <button type="button" class="btn btn-secondary btn-vis-player" ng-click="stop()" ng-show="playing">
                     <i class="fas fa-pause"></i>
                   </button>
-                  <button type="button" class="btn btn-secondary" ng-click="forward()">
+                  <button type="button" class="btn btn-secondary btn-vis-player" ng-click="forward()">
                     <i class="fas fa-step-forward"></i>
                   </button>
-                  <button type="button" class="btn btn-secondary" ng-click="end()">
+                  <button type="button" class="btn btn-secondary btn-vis-player btn-vis-player-end" ng-click="end()">
                     <i class="fas fa-fast-forward"></i>
                   </button>
                 </div>
@@ -102,7 +106,9 @@
                   <div class="input-group-prepend">
                     <div class="input-group-text" id="currentDate">{{ formatDate(currentDate) }}</div>
                   </div>
-                  <input ng-change="myUpdateData()" ng-model="dataSet.currentStep" type="range" min="0" max="{{ dataSet.endStep }}" value="0" class="flex-grow-1 mx-2" id="timeline"  aria-label="Simulation timeline" aria-describedby="timeline">
+                  <div class="flex-grow-1 d-flex align-content-center vis-slider-container">
+                    <input ng-change="myUpdateData()" ng-model="dataSet.currentStep" type="range" min="0" max="{{ dataSet.endStep }}" value="0" class="flex-grow-1 mx-2" id="timeline"  aria-label="Simulation timeline" aria-describedby="timeline">
+                  </div>
                   <div class="input-group-append">
                     <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                       <i class="fas fa-tachometer-alt"></i>
@@ -179,8 +185,7 @@
         <p class="float-right">
           <a href="#">Back to top</a>
         </p>
-        <p>Footer Stuff</p>
-        <p>Maybe references</p>
+        <p>Built upon <a href="https://github.com/djgroen/flee-release">Flee - the agent-based modelling toolkit</a>.</p>
       </div>
     </footer>
     <!-- Optional JavaScript -->

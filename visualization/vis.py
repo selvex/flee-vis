@@ -62,30 +62,3 @@ class VisManager:
   def saveVisData(self):
     json.dump(self.data, self.output_file)
     self.output_file.close()
-
-
-class HeatMapManager:
-  def __init__(self, output_file = ''):
-    if output_file == '':
-      output_file = SimulationSettings.SimulationSettings.DefaultVisPath / "heatmap.json"
-    self.output_file = open(output_file, "w")
-    if not self.output_file.writable():
-      raise ValueError("Cant write to visualization output file")
-    self.data = []
-
-  def addTimeStep(self, locations):
-    formatted = []
-    # type: Location
-    for id, location in enumerate(locations):
-      formatted.append({
-        "lat": location.x,
-        "lng": location.y,
-        "count": location.numAgents,
-        "name": location.name
-      })
-
-    self.data.append(formatted)
-
-  def saveVisData(self):
-    json.dump(self.data, self.output_file)
-    self.output_file.close()

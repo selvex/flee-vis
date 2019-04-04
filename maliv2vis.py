@@ -214,7 +214,6 @@ if __name__ == "__main__":
 
   t_retrofitted = 0
 
-  heatmap = visualization.vis.HeatMapManager()
   visoutput = visualization.vis.VisManager()
   for t in range(0,end_time):
 
@@ -331,9 +330,7 @@ if __name__ == "__main__":
       output += ",0,0,0,0,0,0,0"
 
     print(output)
-    heatmap.addTimeStep(e.locations)
     assert t == visoutput.addTimeStep()
     visoutput.addLocationDataAtTime(t, e.locations)
-  heatmap.saveVisData()
   visoutput.saveVisData()
 

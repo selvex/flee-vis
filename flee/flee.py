@@ -5,6 +5,8 @@ import sys
 import copy
 #from multiprocessing import Process,Pool
 from flee import SimulationSettings
+import visualization.vis
+from visualization.vis import *
 
 class Person:
   def __init__(self, location):
@@ -177,8 +179,25 @@ class Person:
 class VisPerson(Person):
   def __init__(self, location):
     super().__init__(location)
+    self.id = nextID()
+    self.previousLocation = location
   def getVisData(self):
-    return "hola"
+    ret = {
+      "id": self.id,
+      "moved": self.previousLocation.name == self.location.name
+    }
+    if self.location.name == "__link__":
+      ret["location"] = {
+        "link": True,
+        "name": "transit from " + self.previousLocation.name + " to " + self.location.endpoint.name,
+        "from": locationToDict(self.previousLocation),
+        "to": locationToDict(self.location.endpoint)
+      }
+    else:
+      ret["location"] = locationToDict(self.location)
+      ret["location"]["link"] = False
+      self.previousLocation = self.location
+    return ret
 
 class Location:
   def __init__(self, name, x=0.0, y=0.0, movechance=0.001, capacity=-1, pop=0, foreign=False, country="unknown"):

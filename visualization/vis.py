@@ -1,7 +1,16 @@
 from flee import SimulationSettings
-from flee.flee import Location
-from flee.flee import Link
 import json
+
+def locationToDict(location):
+  return {
+        "lat": location.x,
+        "lng": location.y,
+        "pop": location.pop,
+        "refugees": location.numAgents,
+        "name": location.name,
+        "camp": location.camp,
+        "capacity": location.capacity
+      }
 
 class VisManager:
   def __init__(self, output_file = ''):
@@ -10,11 +19,16 @@ class VisManager:
     self.output_file = open(output_file, "w")
     if not self.output_file.writable():
       raise ValueError("Cant write to visualization output file")
+    self.output_file.truncate()
+    self.output_file.close()
+    self.output_file = open(output_file, "a")
+    self.output_file.write("[")
+
     self.data = []
 
   def visFormat(self):
     return {
-      'actors': [],
+      'actors': {},
       'locations': [],
       'links': []
     }
@@ -56,36 +70,29 @@ class VisManager:
     self.data[t]["locations"] = formatted_locations
     self.data[t]["links"] = formatted_links
 
-  def addPersonDataAtTime(self, t, person):
-    self.data[t]['actors'].append(person.getVisData())
+  def addPersonDataAtTime(self, t, persons):
+    for id, person in enumerate(persons):
+      vis_data = person.getVisData()
+      self.data[t]["actors"][vis_data["id"]] = vis_data
 
   def saveVisData(self):
     json.dump(self.data, self.output_file)
     self.output_file.close()
 
+  def stepWiseSave(self, t):
+    json.dump(self.data[t], self.output_file)
+    self.output_file.flush()
 
-class HeatMapManager:
-  def __init__(self, output_file = ''):
-    if output_file == '':
-      output_file = SimulationSettings.SimulationSettings.DefaultVisPath / "heatmap.json"
-    self.output_file = open(output_file, "w")
-    if not self.output_file.writable():
-      raise ValueError("Cant write to visualization output file")
-    self.data = []
+  def completeStep(self, t):
+    self.stepWiseSave(t)
 
-  def addTimeStep(self, locations):
-    formatted = []
-    # type: Location
-    for id, location in enumerate(locations):
-      formatted.append({
-        "lat": location.x,
-        "lng": location.y,
-        "count": location.numAgents,
-        "name": location.name
-      })
-
-    self.data.append(formatted)
-
-  def saveVisData(self):
-    json.dump(self.data, self.output_file)
+  def finish(self):
+    self.output_file.write("]")
     self.output_file.close()
+
+
+actor_id = 0
+def nextID():
+  global actor_id
+  actor_id += 1
+  return actor_id

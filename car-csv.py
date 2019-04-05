@@ -1,10 +1,11 @@
-from flee import flee
+from flee import flee, SimulationSettings
 from datamanager import handle_refugee_data
 from datamanager import DataTable #DataTable.subtract_dates()
 from flee import InputGeography
 import numpy as np
 import outputanalysis.analysis as a
 import sys
+import visualization.vis
 
 def AddInitialRefugees(e, d, loc):
   """ Add the initial refugees to a location, using the location name"""
@@ -98,6 +99,7 @@ if __name__ == "__main__":
   refugee_debt = 0
   refugees_raw = 0 #raw (interpolated) data from TOTAL UNHCR refugee count only.
 
+  visoutput = visualization.vis.VisManager(SimulationSettings.SimulationSettings.DefaultVisPath / "car.json")
   for t in range(0,end_time):
 
     ig.AddNewConflictZones(e,t)
@@ -157,5 +159,8 @@ if __name__ == "__main__":
       output += ",0,0,0,0,0,0,0"
       #output_string += ",0"
 
-
     print(output)
+
+    assert t == visoutput.addTimeStep()
+    visoutput.addLocationDataAtTime(t, e.locations)
+  visoutput.saveVisData()

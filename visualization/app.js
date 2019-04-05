@@ -22,6 +22,16 @@ app.get('/data/all', function(req, res) {
   res.sendFile(path.join(__dirname + "/public/assets/data/test/all.json"));
 });
 
+app.get('/data/car', function(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  res.sendFile(path.join(__dirname + "/public/assets/data/test/car.json"));
+});
+
+app.get('/data/mali', function(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  res.sendFile(path.join(__dirname + "/public/assets/data/test/mali.json"));
+});
+
 var server = app.listen(3000, function () {
   console.log('Flee Vis app listening on port 3000!');
   console.log("Visit localhost:3000 to start.")

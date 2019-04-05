@@ -12,7 +12,7 @@ app.config(['$provide', function($provide) {
 }]);
 
 
-app.controller('fleeVisController', ['$scope', '$http', '$interval', 'mapManager','circleVis', 'heatmapVis', function($scope, $http, $interval, mapManager, circleVis, heatmapVis) {
+app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout', 'mapManager','circleVis', 'heatmapVis', function($scope, $http, $interval, $timeout, mapManager, circleVis, heatmapVis) {
   $scope.popups = [];
   $scope.playing = false;
   $scope.endStep = 500;
@@ -62,6 +62,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', 'mapManager
       $scope.ready = true;
     });
   };
+  $timeout($scope.getData(), 500);
   
   /**
    * Function that updates the model with the internal data of the data set. To be called whenever the internal data

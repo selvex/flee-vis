@@ -145,6 +145,10 @@ class CircleVisManager
     this.colorConfigs['yellow'] = {
       color: 'yellow', fillColor: '#ff6', fillOpacity: 0.5
     };
+    let that = this;
+    this.map.on('zoomend', function() {
+      that.redrawRoutes();
+    })
   }
   
   clearLayers()
@@ -202,7 +206,7 @@ class CircleVisManager
   createLine(link)
   {
     let points = [
-      [link.from.lat - 0.0000001, link.from.lng - 0.0000001],
+      [link.from.lat, link.from.lng],
       [link.to.lat, link.to.lng]
     ];
     let cfg = this.colorConfigs['green'];
@@ -212,15 +216,41 @@ class CircleVisManager
     cfg.weight = link.refugees > 0 ? 3 + Math.min(Math.max(Math.floor(link.refugees / 40), 0), 4) : 3;
     cfg.offset = 5;
   
+    points.push(this.getPointForHalfedge(points));
   
     let line = L.polyline(points, cfg);
     line.bindPopup("Route from " + link.from.name + " to " + link.to.name + "<br>" +
     "Refugees: " + link.refugees
     );
-    
-    
+  
     this.lineLayer.addLayer(line);
     this.lines.push(line);
+  }
+  
+  redrawRoutes()
+  {
+    for (let i = 0; i < this.lines.length; i++)
+    {
+      let line = this.lines[i];
+      
+      let points = line.getLatLngs();
+      points.pop();
+      points.push(this.getPointForHalfedge(points));
+      line.setLatLngs(points);
+    }
+  }
+  
+  getPointForHalfedge(points)
+  {
+    let projected_points = [this.map.latLngToLayerPoint(points[0]), this.map.latLngToLayerPoint(points[1])];
+    let segmentAngle = Math.atan2(projected_points[0].y - projected_points[1].y, projected_points[0].x - projected_points[1].x);
+    let offsetAngle = segmentAngle - (Math.PI) / 4;
+  
+    let halfedge_arrow = {
+      x: projected_points[1].x + 30 * Math.cos(offsetAngle),
+      y: projected_points[1].y + 30 * Math.sin(offsetAngle),
+    };
+    return this.map.layerPointToLatLng(halfedge_arrow);
   }
   
   reset()

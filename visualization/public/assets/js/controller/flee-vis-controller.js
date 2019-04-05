@@ -37,12 +37,13 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
     console.log("Called getData Successfully with target " + $scope.selectedSimulation.name);
     $http({
       method: 'get',
-      url: '/data/all'
+      url: '/data/' + $scope.selectedSimulation.name.toLowerCase()
     }).then(function successCallback(response) {
       // clear everything so we have a clean map
       circleVis.clearLayers();
       mapManager.cities.clearLayers();
       mapManager.camps.clearLayers();
+      $scope.popups = [];
       
       $scope.dataSet = new TimedData(response.data);
       let now = $scope.dataSet.getCurrentData();
@@ -78,6 +79,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       // ng-hide doesn't deactivate this behaviour so we have to check for undefined here.
       return;
     }
+    console.log("Scope is ready");
     $scope.locations = $scope.dataSet.getCurrentData().locations;
     $scope.links = $scope.dataSet.getCurrentData().links;
     $scope.currentDate = $scope.simStepToDate();
@@ -101,6 +103,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       }
     }
   
+    console.log("Updaated popups");
     if (circleVis.isLineActive())
     {
       for (let i = 0; i < $scope.links.length; i++)

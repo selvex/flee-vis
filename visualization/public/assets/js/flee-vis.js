@@ -66,5 +66,14 @@ class MapManager
     };
   
     L.control.layers(baseLayers, overlayLayers).addTo(this.map);
+  
+    this.generalPopup = L.popup();
+    let that = this;
+    this.map.on('click', function(e) {
+      that.generalPopup
+      .setLatLng(e.latlng)
+      .setContent("You clicked the map at " + e.latlng.toString())
+      .openOn(that.map);
+    });
   }
 }

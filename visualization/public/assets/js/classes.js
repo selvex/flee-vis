@@ -67,12 +67,12 @@ class TimedHeatmapData extends TimedData
 
 class HeatmapManager
 {
-  constructor(map, layer)
+  constructor(map, layer, max = 10000)
   {
     this.map = map;
     this.layer = layer;
     this.defaultConfig = {
-      max: 10000,
+      max: max,
       min: 0,
       data: []
     };
@@ -98,22 +98,21 @@ class HeatmapManager
     this.layer.addData(location);
   }
   
-  updateHeatmap(locations, config = {empty: true})
+  updateHeatmap(locations)
   {
-    this.layer.setData(this.buildConfig(locations, config));
+    this.layer.setData(this.buildConfig(locations));
   }
   
-  buildConfig(data, config)
+  setConfig(max = 10000, min = 0)
+  {
+    this.defaultConfig.max = max;
+    this.defaultConfig.min = min;
+  }
+  
+  buildConfig(data)
   {
     const preped_data = {data: data};
-    if (config.empty)
-    {
-      return Object.assign(this.defaultConfig, preped_data);
-    }
-    else
-    {
-      return Object.assign(config, preped_data);
-    }
+    return Object.assign(this.defaultConfig, preped_data);
   }
 }
 
@@ -130,7 +129,6 @@ class CircleVisManager
     this.popups = [];
   
     this.outliers = Object.create(null);
-    this.outliers['Mbera'] = {radiusMultiplier: 3, color: 'blue', fillColor: '#03f', fillOpacity: 0.5};
   
     this.colorConfigs = Object.create(null);
     this.colorConfigs['red'] = {
@@ -145,10 +143,28 @@ class CircleVisManager
     this.colorConfigs['yellow'] = {
       color: 'yellow', fillColor: '#ff6', fillOpacity: 0.5
     };
+    
+    this.defaultRadiusMultiplier = 15;
+    
     let that = this;
     this.map.on('zoomend', function() {
       that.redrawRoutes();
     })
+  }
+  
+  setVisualizationOptions(options)
+  {
+    this.defaultRadiusMultiplier = options.radiusMultiplier;
+    
+    this.outliers = Object.create(null);
+    for (let i = 0; i < options.outliers.length; i++)
+    {
+      let outlier = options.outliers[i];
+      let color = this.colorConfigs[outlier.color];
+      let config = { radiusMultiplier: outlier.radiusMultiplier };
+      
+      this.outliers[outlier.name] = Object.assign(config, color);
+    }
   }
   
   clearLayers()
@@ -181,7 +197,7 @@ class CircleVisManager
       color: 'red',
       fillColor: '#f03',
       fillOpacity: 0.5,
-      radius: location.refugees * 15
+      radius: location.refugees * this.defaultRadiusMultiplier
     };
     if (location.name in this.outliers)
     {

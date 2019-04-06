@@ -23,8 +23,31 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   $scope.msPerTick = 1000;
   
   $scope.availableSimulations = Object.create(null);
-  $scope.availableSimulations['Mali'] = {name: "Mali", description: "Test descr Mali"};
-  $scope.availableSimulations['CAR'] = {name: "CAR", description: "Test descr CAR"};
+  $scope.availableSimulations['Mali'] = {name: "Mali", description: "Test descr Mali", radiusMultiplier: 15, heatmapMax: 10000, outliers:
+    [
+      {
+        name: "Mbera",
+        radiusMultiplier: 3,
+        color: "blue"
+      },
+    ],
+    center: new L.LatLng(16.3700359, -2.2900239)
+  };
+  $scope.availableSimulations['CAR'] = {name: "CAR", description: "Test descr CAR", radiusMultiplier: 3, heatmapMax: 20000, outliers:
+      [
+        {
+          name: "East",
+          radiusMultiplier: 1,
+          color: "green"
+        },
+        {
+          name: "Adamaoua",
+          radiusMultiplier: 2,
+          color: "blue"
+        }
+      ],
+    center: new L.LatLng(5.725311, 19.488373)
+  };
   
   $scope.selectedSimulation = $scope.availableSimulations['Mali'];
     
@@ -44,6 +67,10 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       mapManager.cities.clearLayers();
       mapManager.camps.clearLayers();
       $scope.popups = [];
+  
+      heatmapVis.setConfig($scope.selectedSimulation.heatmapMax);
+      circleVis.setVisualizationOptions($scope.selectedSimulation);
+      mapManager.map.panTo($scope.selectedSimulation.center);
       
       $scope.dataSet = new TimedData(response.data);
       let now = $scope.dataSet.getCurrentData();
@@ -79,7 +106,6 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       // ng-hide doesn't deactivate this behaviour so we have to check for undefined here.
       return;
     }
-    console.log("Scope is ready");
     $scope.locations = $scope.dataSet.getCurrentData().locations;
     $scope.links = $scope.dataSet.getCurrentData().links;
     $scope.currentDate = $scope.simStepToDate();
@@ -103,7 +129,6 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       }
     }
   
-    console.log("Updaated popups");
     if (circleVis.isLineActive())
     {
       for (let i = 0; i < $scope.links.length; i++)

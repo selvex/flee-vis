@@ -1,5 +1,11 @@
+/**
+ * Helper class providing functions for handling time series data.
+ */
 class TimedData
 {
+  /**
+   * @param data JS array; index of an element is the associated time step
+   */
   constructor(data)
   {
     this.internal = Object.create(null);
@@ -11,16 +17,31 @@ class TimedData
     this.internal = data;
   }
   
+  /**
+   * Helper function in case the internal presentation of the data has to be processed before using it.
+   * When extending this class this function can be overridden to format the data before working with it.
+   * @param data All the necessary data associated with a single time step
+   * @returns {*} Formatted data; in the default case does nothing
+   */
   buildConfig(data)
   {
     return data;
   }
   
+  /**
+   * Get the data for the current time step.
+   * @returns {*} All the data associated with the current time step
+   */
   getCurrentData()
   {
     return this.buildConfig(this.internal[this.currentStep]);
   }
   
+  /**
+   * Moves the internal representation to the next element of the time series data.
+   * If we are already at the end, nothing happens.
+   * @returns {*} All the data associated with the next (but now current) time step
+   */
   nextStep()
   {
     if (this.end()) return;
@@ -28,6 +49,11 @@ class TimedData
     return this.buildConfig(this.internal[this.currentStep]);
   }
   
+  /**
+   * Moves the internal representation to the previous element of the time series data.
+   * If we are at the start, nothing happens.
+   * @returns {*} All the data associated with the previous (but now current) time step
+   */
   previousStep()
   {
     if (this.currentStep === 0) return;
@@ -35,6 +61,11 @@ class TimedData
     return this.buildConfig(this.internal[this.currentStep]);
   }
   
+  /**
+   * Moves the internal representation to a given point in time.
+   * @param t Time step to move to
+   * @returns {*} All the data associated with the given (and now current) time step
+   */
   gotoStep(t)
   {
     if (t < 0 || t > this.internal.length) return;
@@ -42,31 +73,26 @@ class TimedData
     return this.buildConfig(this.internal[this.currentStep]);
   }
   
+  /**
+   * Helper function to check if we reached the end of the data.
+   * @returns {boolean} true if we are at the end, false otherwise
+   */
   end()
   {
     return this.currentStep === this.endStep;
   }
 }
 
-class TimedHeatmapData extends TimedData
-{
-  constructor(data)
-  {
-    super(data);
-  }
-  
-  buildConfig(data)
-  {
-    return {
-      max: 10000,
-      min: 0,
-      data: data
-    }
-  }
-}
-
+/**
+ * Contains functions for everything related to the heatmap visualization.
+ */
 class HeatmapManager
 {
+  /**
+   * @param map Reference to the leaflet map. Used to check if layer is active
+   * @param layer Reference to the layer we are using
+   * @param max Maximum value for heatmap. All values higher than this will result in the same red circle.
+   */
   constructor(map, layer, max = 10000)
   {
     this.map = map;
@@ -78,19 +104,26 @@ class HeatmapManager
     };
   }
   
+  /**
+   * Helper function that returns true if the heatmap visualization is currently showing.
+   * @returns {boolean} True if heatmap is currently visible, false otherwise
+   */
   isActive()
   {
     return this.map.hasLayer(this.layer);
   }
   
+  /**
+   * Deletes all points from the heatmap.
+   */
   reset()
   {
     this.layer.setData(this.defaultConfig);
   }
   
   /**
-   * Adds a location to the data. We use this instead of setData so we only iterate over all locations once in our
-   * update function.
+   * Adds a location to the data.
+   * However heatmapjs is much more efficient when setting all the data at once. Use updateHeatmap instead.
    * @param location
    */
   addLocation(location)
@@ -98,17 +131,33 @@ class HeatmapManager
     this.layer.addData(location);
   }
   
+  /**
+   * Update the heatmap visualization with the data given in the locations array
+   * @param locations JS array containing all locations to be displayed. Locations need to contain
+   * the fields: lat, lng, refugees. See flee-vis.js for field definitions.
+   */
   updateHeatmap(locations)
   {
     this.layer.setData(this.buildConfig(locations));
   }
   
+  /**
+   * Set the max and min value for the heatmap visualization.
+   * @param max Max value of the heatmap (results in red spot)
+   * @param min Min value of heatmap. Places with values lower then this are not rendered.
+   */
   setConfig(max = 10000, min = 0)
   {
     this.defaultConfig.max = max;
     this.defaultConfig.min = min;
   }
   
+  /**
+   * Helper function that returns the correct object structure needed for the heatmap visualization to work.
+   * @param data Array containing the locations to visualize.
+   * @returns {({max: number, min: number, data: Array} & {data: *}) | *} Returns object of the correct structure to use
+   * with heatmapjs.
+   */
   buildConfig(data)
   {
     const preped_data = {data: data};
@@ -116,8 +165,16 @@ class HeatmapManager
   }
 }
 
+/**
+ * Contains functions for everything related to the circle and line visualization.
+ */
 class CircleVisManager
 {
+  /**
+   * @param map Reference to the map to check if layer is active.
+   * @param circleLayer The layer the objects of the circle visualization are drawn on.
+   * @param lineLayer The layer the objects for the line visualization (routes) are drawn on.
+   */
   constructor(map, circleLayer, lineLayer)
   {
     this.map = map;
@@ -130,6 +187,10 @@ class CircleVisManager
   
     this.outliers = Object.create(null);
   
+    /**
+     * Hashmap of color configurations for drawing poly-lines and circles.
+     * @type {Object}
+     */
     this.colorConfigs = Object.create(null);
     this.colorConfigs['red'] = {
       color: 'red', fillColor: '#f03', fillOpacity: 0.5
@@ -145,13 +206,21 @@ class CircleVisManager
     };
     
     this.defaultRadiusMultiplier = 15;
-    
+  
+    /**
+     * We have to redraw routes after zoom. This ensures the half-edge is displayed correctly.
+     * @type {CircleVisManager}
+     */
     let that = this;
     this.map.on('zoomend', function() {
       that.redrawRoutes();
     })
   }
   
+  /**
+   * Set the default radius multiplier and save the outliers for the currently active visualization.
+   * @param options Object containing key for radius multiplier and an array of outliers.
+   */
   setVisualizationOptions(options)
   {
     this.defaultRadiusMultiplier = options.radiusMultiplier;
@@ -167,29 +236,31 @@ class CircleVisManager
     }
   }
   
+  /**
+   * Delete all circles and lines currently drawn.
+   */
   clearLayers()
   {
     this.circleLayer.clearLayers();
     this.lineLayer.clearLayers();
   }
   
+  /**
+   * Given an array of locations, draw all circles for those locations.
+   * @param locations Array of locations containing lat, lng and agent count.
+   */
   createAll(locations)
   {
     for (let i = 0; i < locations.length; i++)
     {
-      let location = locations[i];
-      let circle = L.circle([location.lat, location.lng],
-      {
-        color: 'red',
-        fillColor: '#f03',
-        fillOpacity: 0.5,
-        radius: location.refugees * 100
-      });
-      this.circles.push(circle);
-      this.circleLayer.addLayer(circle);
+      this.createCircle(locations[i]);
     }
   }
   
+  /**
+   * Draw a circle for the given location.
+   * @param location Object containing lat, lng and agent count.
+   */
   createCircle(location)
   {
     if (location.refugees === 0) return;
@@ -209,16 +280,28 @@ class CircleVisManager
     this.circleLayer.addLayer(circle);
   }
   
+  /**
+   * If circle layer is currently shown on the map.
+   * @returns {boolean} True if circle layer is activated, false otherwise.
+   */
   isCircleActive()
   {
     return this.map.hasLayer(this.circleLayer);
   }
   
+  /**
+   * If line layer is currently shown on the map.
+   * @returns {boolean} True if line layer is activated, false otherwise.
+   */
   isLineActive()
   {
     return this.map.hasLayer(this.lineLayer);
   }
   
+  /**
+   * Given a link, draw a line from start point to end point.
+   * @param link Object containing from.lat|lng, to.lat|lng and agent count.
+   */
   createLine(link)
   {
     let points = [
@@ -243,6 +326,10 @@ class CircleVisManager
     this.lines.push(line);
   }
   
+  /**
+   * Update all points that are used to turn routes into half-edges and redraw them on the map.
+   * Used when the map is zoomed to correctly display half-edges.
+   */
   redrawRoutes()
   {
     for (let i = 0; i < this.lines.length; i++)
@@ -256,6 +343,13 @@ class CircleVisManager
     }
   }
   
+  /**
+   * Given two points finds a third point such that the line looks like an arrow pointing in the direction
+   * from the first point to the second point. We only draw one side of the arrow and therefore get a half-edge.
+   * @param points Array of two points given in lat, lng.
+   * @returns {L.LatLng} LatLng object to draw the third point on the map creating a half-edge like shape when used
+   * with the given points.
+   */
   getPointForHalfedge(points)
   {
     let projected_points = [this.map.latLngToLayerPoint(points[0]), this.map.latLngToLayerPoint(points[1])];
@@ -269,6 +363,9 @@ class CircleVisManager
     return this.map.layerPointToLatLng(halfedge_arrow);
   }
   
+  /**
+   * Delete all drawn circles and lines and delete all internal references.
+   */
   reset()
   {
     this.circleLayer.clearLayers();
@@ -277,6 +374,9 @@ class CircleVisManager
     this.lines = [];
   }
   
+  /**
+   * Sanity check.
+   */
   test()
   {
     console.log("Called");

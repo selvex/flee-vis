@@ -192,44 +192,56 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
     $scope.myUpdateData();
   };
   
+  /**
+   * Advance the time step by one and stop if playing
+   */
   $scope.forward = function() {
     $scope.stop();
     $scope.dataSet.nextStep();
     $scope.myUpdateData();
   };
   
+  /**
+   * Go back one time step and stop if playing
+   */
   $scope.back = function() {
     $scope.stop();
     $scope.dataSet.previousStep();
     $scope.myUpdateData();
   };
   
+  /**
+   * Go to the first time step and stop if playing
+   */
   $scope.beginning = function() {
     $scope.stop();
     $scope.dataSet.gotoStep(0);
     $scope.myUpdateData();
   };
   
+  /**
+   * Go to the last time step and stop if playing
+   */
   $scope.end = function() {
     $scope.stop();
     $scope.dataSet.gotoStep($scope.endStep);
     $scope.myUpdateData();
   };
   
+  /**
+   * Start automatically advancing the timeline
+   */
   $scope.play = function() {
-    console.log("Play pressed");
     if ($scope.dataSet.end())
     {
       return;
     }
     if (!$scope.playing)
     {
-      console.log("Starting play");
       $scope.playing = true;
       var promise = $interval(function() {
         if (!$scope.playing)
         {
-          console.log("Pausing");
           $interval.cancel(promise);
           return;
         }
@@ -238,15 +250,12 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
         
         if ($scope.dataSet.end())
         {
-          console.log("Simulation ended");
           $interval.cancel(promise);
         }
       }, $scope.msPerTick / $scope.simulationSpeed);
       promise.then(function() {
-        console.log("Promise: Interval resolved");
         $scope.playing = false;
       }).catch(function() {
-        console.log("Promise: Interval rejected");
         $scope.playing = false;
       });
     }
@@ -255,18 +264,29 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       $scope.playing = false;
     }
   };
-  
+  /**
+   * Stop automatically advancing the timeline
+   */
   $scope.stop = function() {
     $scope.playing = false;
   };
   
   // Helpers
+  /**
+   * Tranforms the current timestep into a JS Date object
+   * @returns {Date} the date representation of the current timestep
+   */
   $scope.simStepToDate = function() {
     let current_date = new Date($scope.startDate.valueOf());
     current_date.setDate($scope.startDate.getDate() + $scope.dataSet.currentStep);
     return current_date;
   };
   
+  /**
+   * Transforms the given JS Date object into a human readable string
+   * @param date JS Date object which should be formatted
+   * @returns {string} human readable string representing date
+   */
   $scope.formatDate = function(date) {
     let month = date.getMonth() + 1;
     if (month < 10) { month = "0" + month; }

@@ -299,6 +299,7 @@ class CircleVisManager
    */
   createLine(link)
   {
+    if (link.refugees === 0 && !link.forced) return;
     let points = [
       [link.from.lat, link.from.lng],
       [link.to.lat, link.to.lng]

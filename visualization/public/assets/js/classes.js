@@ -138,7 +138,12 @@ class HeatmapManager
    */
   updateHeatmap(locations)
   {
-    this.layer.setData(this.buildConfig(locations));
+    const scaled_locations = locations.map(function(location, index) {
+      let scaled_location = Object.create(location);
+      scaled_location.refugees = location.refugees === 0 ? 0 : Math.log(location.refugees);
+      return scaled_location;
+    });
+    this.layer.setData(this.buildConfig(scaled_locations));
   }
   
   /**
@@ -185,8 +190,6 @@ class CircleVisManager
     this.lines = [];
     this.popups = [];
   
-    this.outliers = Object.create(null);
-  
     /**
      * Hashmap of color configurations for drawing poly-lines and circles.
      * @type {Object}
@@ -218,22 +221,12 @@ class CircleVisManager
   }
   
   /**
-   * Set the default radius multiplier and save the outliers for the currently active visualization.
-   * @param options Object containing key for radius multiplier and an array of outliers.
+   * Set the default radius multiplier.
+   * @param options {Object} Object containing key for radius multiplier.
    */
   setVisualizationOptions(options)
   {
     this.defaultRadiusMultiplier = options.radiusMultiplier;
-    
-    this.outliers = Object.create(null);
-    for (let i = 0; i < options.outliers.length; i++)
-    {
-      let outlier = options.outliers[i];
-      let color = this.colorConfigs[outlier.color];
-      let config = { radiusMultiplier: outlier.radiusMultiplier };
-      
-      this.outliers[outlier.name] = Object.assign(config, color);
-    }
   }
   
   /**
@@ -264,17 +257,19 @@ class CircleVisManager
   createCircle(location)
   {
     if (location.refugees === 0) return;
-    let cfg = {
-      color: 'red',
-      fillColor: '#f03',
-      fillOpacity: 0.5,
-      radius: location.refugees * this.defaultRadiusMultiplier
-    };
-    if (location.name in this.outliers)
+    let cfg = Object.create(this.colorConfigs["blue"]); // create a copy of the object, not a reference
+  
+    if (location.refugees > 30000)
     {
-      cfg = this.outliers[location.name];
-      cfg.radius = location.refugees * cfg.radiusMultiplier;
+      cfg = Object.create(this.colorConfigs["red"]);
     }
+    else if (location.refugees > 10000)
+    {
+      cfg = Object.create(this.colorConfigs["green"]);
+    }
+  
+    cfg.radius = Math.log(location.refugees) * this.defaultRadiusMultiplier;
+    
     let circle = L.circle([location.lat, location.lng], cfg);
     this.circles.push(circle);
     this.circleLayer.addLayer(circle);

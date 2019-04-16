@@ -19,33 +19,14 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   $scope.ready = false;
   $scope.startDate = new Date("2012-02-29");
   $scope.currentDate = $scope.startDate;
-  $scope.simulationSpeed = 1.0;
+  $scope.simulationSpeed = 15.0;
   $scope.msPerTick = 1000;
   
   $scope.availableSimulations = Object.create(null);
-  $scope.availableSimulations['Mali'] = {name: "Mali", description: "Test descr Mali", radiusMultiplier: 15, heatmapMax: 10000, outliers:
-    [
-      {
-        name: "Mbera",
-        radiusMultiplier: 3,
-        color: "blue"
-      },
-    ],
+  $scope.availableSimulations['Mali'] = {name: "Mali", description: "Test descr Mali", radiusMultiplier: 13000, heatmapMax: 10,
     center: new L.LatLng(16.3700359, -2.2900239)
   };
-  $scope.availableSimulations['CAR'] = {name: "CAR", description: "Test descr CAR", radiusMultiplier: 3, heatmapMax: 20000, outliers:
-      [
-        {
-          name: "East",
-          radiusMultiplier: 1,
-          color: "green"
-        },
-        {
-          name: "Adamaoua",
-          radiusMultiplier: 2,
-          color: "blue"
-        }
-      ],
+  $scope.availableSimulations['CAR'] = {name: "CAR", description: "Test descr CAR", radiusMultiplier: 13000, heatmapMax: 12,
     center: new L.LatLng(5.725311, 19.488373)
   };
   

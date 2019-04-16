@@ -66,8 +66,7 @@
 
 
       <div class="py-5 bg-light">
-        <div class="container">
-
+        <div class="container-fluid px-5">
           <div class="row">
             <div class="col-md-12">
               <div id="map" class="card mb-4 box-shadow">
@@ -79,6 +78,8 @@
               </div>
             </div>
           </div>
+        </div>
+        <div class="container">
           <div class="row mb-4">
             <div class="col-md-12 mx-auto d-flex flex-column">
               <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
@@ -138,7 +139,7 @@
                     <th>Refugees</th>
                   </tr>
                   <tr ng-repeat="location in locations" ng-if="!location.camp">
-                    <td>{{ location.name }}</td>
+                    <td><a href="#map" ng-click="zoomTo($index)">{{ location.name }}</a></td>
                     <td>{{ location.pop }}</td>
                     <td>{{ location.refugees }}</td>
                   </tr>
@@ -154,7 +155,7 @@
                     <th>Refugees</th>
                   </tr>
                   <tr ng-repeat="location in locations" ng-if="location.camp">
-                    <td>{{ location.name }}</td>
+                    <td><a href="#map" ng-click="zoomTo($index)">{{ location.name }}</a></td>
                     <td>{{ location.capacity }}</td>
                     <td class="{{ location.capacity - 50 <= location.refugees ? 'text-danger' : '' }}">{{ location.refugees }}</td>
                   </tr>

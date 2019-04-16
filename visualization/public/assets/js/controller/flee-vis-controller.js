@@ -13,7 +13,7 @@ app.config(['$provide', function($provide) {
 
 
 app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout', 'mapManager','circleVis', 'heatmapVis', function($scope, $http, $interval, $timeout, mapManager, circleVis, heatmapVis) {
-  $scope.popups = [];
+  $scope.marker = [];
   $scope.playing = false;
   $scope.endStep = 500;
   $scope.ready = false;
@@ -31,8 +31,6 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   };
   
   $scope.selectedSimulation = $scope.availableSimulations['Mali'];
-    
-    
     /**
    * Retrieves the specified data from the server. Additionally initializes all the marker on the map
    * and stores references to each individual popup to update their text when the model changes.
@@ -47,7 +45,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       circleVis.clearLayers();
       mapManager.cities.clearLayers();
       mapManager.camps.clearLayers();
-      $scope.popups = [];
+      $scope.marker = [];
   
       heatmapVis.setConfig($scope.selectedSimulation.heatmapMax);
       circleVis.setVisualizationOptions($scope.selectedSimulation);
@@ -102,7 +100,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
     {
       let location = $scope.locations[i];
       
-      $scope.updatePopup($scope.popups[i], location);
+      $scope.updatePopup($scope.marker[i].getPopup(), location);
       
       if (circleVis.isCircleActive())
       {
@@ -140,7 +138,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
         "Refugees: " + location.refugees);
       mapManager.cities.addLayer(marker);
     }
-    $scope.popups.push(marker.getPopup());
+    $scope.marker.push(marker);
   };
   
   /**
@@ -162,6 +160,12 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
         "Refugees: " + location.refugees);
     }
     popup.update();
+  };
+  
+  $scope.zoomTo = function(index) {
+    let location = $scope.locations[index];
+    $scope.marker[index].openPopup();
+    mapManager.map.setView([location.lat, location.lng]);
   };
   
   // Timeline related functions
@@ -279,4 +283,10 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   $scope.dbg = function() {
     console.log($scope.selectedSimulation);
   };
+  
+  // Events that use functions defined above
+  /**
+   * When activating an overlay (like heatmap) we update the map to already show it on the map.
+   */
+  mapManager.map.on('overlayadd', $scope.myUpdateData);
 }]);

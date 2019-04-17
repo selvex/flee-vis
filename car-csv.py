@@ -163,4 +163,12 @@ if __name__ == "__main__":
 
     assert t == visoutput.addTimeStep()
     visoutput.addLocationDataAtTime(t, e.locations)
+
+
+  max = -1
+  for location in camp_locations:
+    val = d.getMaxFromData(location, last_physical_day)
+    if val > max:
+      max = val
+  visoutput.setMetaData(max, [5.725311, 19.488373], "2013-12-01", "CAR", "CAR visualization")
   visoutput.saveVisData()

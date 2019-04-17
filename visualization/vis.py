@@ -59,6 +59,21 @@ class VisManager:
   def addPersonDataAtTime(self, t, person):
     self.data[t]['actors'].append(person.getVisData())
 
+  def setMetaData(self, maxActorCount, center, startDate, name="Unnamed simulation", description="An unnamed visualization"):
+    self.metadata = {}
+    self.metadata["max"] = maxActorCount
+    self.metadata["center"] = center
+    self.metadata["start_date"] = startDate
+    self.metadata["name"] = name
+    self.metadata["description"] = description
+
+
   def saveVisData(self):
-    json.dump(self.data, self.output_file)
+    if "max" in self.metadata:
+      vis_data = {}
+      vis_data["meta"] = self.metadata
+      vis_data["data"] = self.data
+      json.dump(vis_data, self.output_file)
+    else:
+      json.dump(self.data, self.output_file)
     self.output_file.close()

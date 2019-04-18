@@ -1,0 +1,11 @@
+#"name1","name2","distance",forced_redirection
+"Paris","Frankfurt",210,0
+"Frankfurt","Wien",150,0
+"Frankfurt","Bratislava",150,0
+"Wien","Frankfurt",150,0
+"Wien","Bratislava",150,0
+"Wien","Prag",150,0
+"Bratislava","Prag",150,0
+"Wien","Mailand",150,0
+"Mailand","Zurich",150,0
+"Prag","Mailand",150,0

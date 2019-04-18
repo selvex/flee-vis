@@ -17,20 +17,44 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   $scope.playing = false;
   $scope.endStep = 500;
   $scope.ready = false;
-  $scope.startDate = new Date("2012-02-29");
+  $scope.startDate = new Date("2019-02-29");
   $scope.currentDate = $scope.startDate;
   $scope.simulationSpeed = 15.0;
+  /**
+   * Two options:
+   * - using circle markers
+   * - using circles
+   * When using circle markers this define the maximum radius in pixel. The circle markers will scale with the current
+   * zoom level, which means they will always be the same size regardless of zoom.
+   * When using circles this defines the maximum radius in meters. The circles will always occupy the same space, meaning
+   * if we zoom the circle also gets bigger.
+   * @type {number}
+   */
+  $scope.maxRadius = 50;
   $scope.msPerTick = 1000;
   
   $scope.availableSimulations = Object.create(null);
-  $scope.availableSimulations['Mali'] = {name: "Mali", description: "Test descr Mali", radiusMultiplier: 13000, heatmapMax: 10,
-    center: new L.LatLng(16.3700359, -2.2900239)
-  };
-  $scope.availableSimulations['CAR'] = {name: "CAR", description: "Test descr CAR", radiusMultiplier: 13000, heatmapMax: 12,
-    center: new L.LatLng(5.725311, 19.488373)
+  $scope.selectedSimulation = Object.create(null);
+  $scope.loadedSimulation = Object.create(null);
+  
+  $scope.fetchAvailableSimulations = function() {
+    return $http({
+      method: 'get',
+      url   : '/data/available-simulations'
+    }).then(function successCallback(response) {
+      $scope.availableSimulations = response.data;
+      if ($scope.availableSimulations.length < 1)
+      {
+        console.error("No simulations available");
+        return;
+      }
+      $scope.selectedSimulation = $scope.availableSimulations[0];
+    })
+    .catch(function error(error) {
+      console.error("Could not fetch available simulations. Server probably not running.");
+    });
   };
   
-  $scope.selectedSimulation = $scope.availableSimulations['Mali'];
     /**
    * Retrieves the specified data from the server. Additionally initializes all the marker on the map
    * and stores references to each individual popup to update their text when the model changes.
@@ -39,19 +63,26 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
     console.log("Called getData Successfully with target " + $scope.selectedSimulation.name);
     $http({
       method: 'get',
-      url: '/data/' + $scope.selectedSimulation.name.toLowerCase()
+      url: '/data/' + $scope.selectedSimulation.name
     }).then(function successCallback(response) {
+      $scope.loadedSimulation = response.data.meta;
+      
       // clear everything so we have a clean map
       circleVis.clearLayers();
       mapManager.cities.clearLayers();
       mapManager.camps.clearLayers();
       $scope.marker = [];
   
-      heatmapVis.setConfig($scope.selectedSimulation.heatmapMax);
-      circleVis.setVisualizationOptions($scope.selectedSimulation);
-      mapManager.map.panTo($scope.selectedSimulation.center);
+      const max_value = Math.log(response.data.meta.max);
+      heatmapVis.setMaxMin(max_value);
+      circleVis.setRadiusMultiplier($scope.maxRadius / max_value);
       
-      $scope.dataSet = new TimedData(response.data);
+      mapManager.map.panTo(response.data.meta.center);
+  
+      $scope.startDate = new Date(response.data.meta.start_date);
+      $scope.currentDate = $scope.startDate;
+      
+      $scope.dataSet = new TimedData(response.data.data);
       let now = $scope.dataSet.getCurrentData();
       for (let i = 0; i < now.locations.length; i++)
       {
@@ -69,7 +100,6 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       $scope.ready = true;
     });
   };
-  $timeout($scope.getData(), 500);
   
   /**
    * Function that updates the model with the internal data of the data set. To be called whenever the internal data
@@ -281,7 +311,9 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   };
   
   $scope.dbg = function() {
+    $scope.selectedSimulation = $scope.availableSimulations["general"];
     console.log($scope.selectedSimulation);
+    $scope.getData();
   };
   
   // Events that use functions defined above
@@ -289,4 +321,8 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
    * When activating an overlay (like heatmap) we update the map to already show it on the map.
    */
   mapManager.map.on('overlayadd', $scope.myUpdateData);
+  
+  $scope.fetchAvailableSimulations().then(function() {
+    $timeout($scope.getData(), 500)
+  });
 }]);

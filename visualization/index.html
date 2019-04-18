@@ -50,9 +50,10 @@
       <section class="jumbotron text-center">
         <div class="container">
           <h1 class="jumbotron-heading">Visualization of refugee movements</h1>
-          <p id="wc-container" class="lead text-muted">Conflict: {{ selectedSimulation.name }}</p>
+          <p ng-show="loadedSimulation.name !== undefined" id="wc-container" class="lead text-muted">Loaded conflict: {{ loadedSimulation.name }}</p>
+          <p ng-hide="loadedSimulation.name !== undefined" class="lead text-muted">To start the visualization select a simulation from the dropdown below.</p>
           <div class="input-group mx-auto">
-            <select name="selectedSimulation" ng-model="selectedSimulation" class="form-control">
+            <select name="selectedSimulation" ng-model="selectedSimulation" class="form-control" title="Available Simulations">
               <option ng-repeat="simulation in availableSimulations" ng-value="{{ simulation }}">{{ simulation.name }}</option>
             </select>
             <div class="input-group-append">
@@ -118,7 +119,7 @@
                       <form class="px-4 py-3">
                         <div class="form-group">
                           <label for="simSpeedInputText">Simulation Speed</label>
-                          <input ng-model="simulationSpeed" type="number" max="6" class="form-control" id="simSpeedInputText" placeholder="1.0">
+                          <input ng-model="simulationSpeed" type="number" max="15" class="form-control" id="simSpeedInputText" placeholder="1.0">
                           <input ng-model="simulationSpeed" type="range" step="0.5" min="0.5" max="15" value="1" class="mt-2 w-100" id="simSpeedInputRange"  aria-label="Current simulation speed" aria-describedby="currentSpeed">
                         </div>
                       </form>

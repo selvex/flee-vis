@@ -151,7 +151,7 @@ class HeatmapManager
    * @param max Max value of the heatmap (results in red spot)
    * @param min Min value of heatmap. Places with values lower then this are not rendered.
    */
-  setConfig(max = 10000, min = 0)
+  setMaxMin(max = 10000, min = 0)
   {
     this.defaultConfig.max = max;
     this.defaultConfig.min = min;
@@ -222,11 +222,11 @@ class CircleVisManager
   
   /**
    * Set the default radius multiplier.
-   * @param options {Object} Object containing key for radius multiplier.
+   * @param radiusMultiplier {int} Radius multiplier to use.
    */
-  setVisualizationOptions(options)
+  setRadiusMultiplier(radiusMultiplier)
   {
-    this.defaultRadiusMultiplier = options.radiusMultiplier;
+    this.defaultRadiusMultiplier = radiusMultiplier;
   }
   
   /**
@@ -270,7 +270,7 @@ class CircleVisManager
   
     cfg.radius = Math.log(location.refugees) * this.defaultRadiusMultiplier;
     
-    let circle = L.circle([location.lat, location.lng], cfg);
+    let circle = L.circleMarker([location.lat, location.lng], cfg);
     this.circles.push(circle);
     this.circleLayer.addLayer(circle);
   }

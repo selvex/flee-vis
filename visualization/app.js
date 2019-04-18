@@ -3,6 +3,8 @@ var app = express();
 var path = require('path');
 var fs = require('fs');
 var config = require('./config.js');
+var logger = require('./public/assets/js/logging.js');
+logger.debug = config.debug;
 
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
@@ -95,8 +97,8 @@ app.get('/data/:file', function(req, res) {
 });
 
 var server = app.listen(config.port, function() {
-  console.log('Flee Vis app listening on port ' + config.port + '!');
-  console.log("Visit localhost:" + config.port + " to start.");
+  logger.log('Flee Vis app listening on port ' + config.port + '!');
+  logger.log("Visit localhost:" + config.port + " to start.");
 });
 app.use(express.static('public'));
 

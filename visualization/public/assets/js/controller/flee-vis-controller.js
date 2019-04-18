@@ -9,10 +9,13 @@ app.config(['$provide', function($provide) {
   $provide.factory('heatmapVis', ['mapManager', function(mapManager) {
     return new HeatmapManager(mapManager.map, mapManager.heatmapLayer);
   }]);
+  $provide.factory('logger', function() {
+    return new Logger(true);
+  });
 }]);
 
 
-app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout', 'mapManager','circleVis', 'heatmapVis', function($scope, $http, $interval, $timeout, mapManager, circleVis, heatmapVis) {
+app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout', 'mapManager','circleVis', 'heatmapVis', 'logger', function($scope, $http, $interval, $timeout, mapManager, circleVis, heatmapVis, logger) {
   $scope.marker = [];
   $scope.playing = false;
   $scope.endStep = 500;
@@ -45,13 +48,13 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       $scope.availableSimulations = response.data;
       if ($scope.availableSimulations.length < 1)
       {
-        console.error("No simulations available");
+        logger.error("No simulations available");
         return;
       }
       $scope.selectedSimulation = $scope.availableSimulations[0];
     })
     .catch(function error(error) {
-      console.error("Could not fetch available simulations. Server probably not running.");
+      logger.error("Could not fetch available simulations. Server probably not running.");
     });
   };
   
@@ -60,7 +63,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
    * and stores references to each individual popup to update their text when the model changes.
    */
   $scope.getData = function() {
-    console.log("Called getData Successfully with target " + $scope.selectedSimulation.name);
+    logger.log("Called getData Successfully with target " + $scope.selectedSimulation.name);
     $http({
       method: 'get',
       url: '/data/' + $scope.selectedSimulation.name
@@ -312,7 +315,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   
   $scope.dbg = function() {
     $scope.selectedSimulation = $scope.availableSimulations["general"];
-    console.log($scope.selectedSimulation);
+    logger.log($scope.selectedSimulation);
     $scope.getData();
   };
   

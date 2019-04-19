@@ -207,8 +207,20 @@ class CircleVisManager
     this.colorConfigs['yellow'] = {
       color: 'yellow', fillColor: '#ff6', fillOpacity: 0.5
     };
+    this.colorConfigs['lightblue'] = {
+      color: '#7BD9E8', fillOpacity: 0.5
+    };
+    this.colorConfigs['lightgreen'] = {
+      color: '#42E833', fillOpacity: 0.5
+    };
+    this.colorConfigs['lightred'] = {
+      color: '#FE4F4B', fillOpacity: 0.5
+    };
     
     this.defaultRadiusMultiplier = 15;
+  
+    this.setupLinkThresholds(1000);
+    this.setupCircleThresholds(30000);
   
     /**
      * We have to redraw routes after zoom. This ensures the half-edge is displayed correctly.
@@ -218,6 +230,32 @@ class CircleVisManager
     this.map.on('zoomend', function() {
       that.redrawRoutes();
     })
+  }
+  
+  /**
+   * Set up the values needed for choosing which color is given to a specific link. Takes the maximum amount
+   * of agents on a link from the meta data and defines thresholds for the different colors.
+   * @param maxAgentsOnLink
+   */
+  setupLinkThresholds(maxAgentsOnLink)
+  {
+    this.maxOnLink = Math.log(maxAgentsOnLink);
+    const thresholds = Math.floor(this.maxOnLink / 3);
+    this.linkMiddleThreshold = thresholds;
+    this.linkFinalThreshold = thresholds * 2;
+  }
+  
+  /**
+   * Set up the values needed for choosing which color is given to a specific circle. Takes the maximum amount
+   * of agents on a location from the meta data and defines thresholds for the different colors.
+   * @param maxAgentsOnLocation
+   */
+  setupCircleThresholds(maxAgentsOnLocation)
+  {
+    this.maxOnLocation = Math.log(maxAgentsOnLocation);
+    const thresholds = Math.floor(maxAgentsOnLocation / 3);
+    this.locationMiddleThreshold = Math.log(thresholds);
+    this.locationFinalThreshold = Math.log(thresholds * 2);
   }
   
   /**
@@ -257,18 +295,19 @@ class CircleVisManager
   createCircle(location)
   {
     if (location.refugees === 0) return;
-    let cfg = Object.create(this.colorConfigs["blue"]); // create a copy of the object, not a reference
+    let scaled_num_agents = Math.log(location.refugees);
+    let chosen_color = "blue";
   
-    if (location.refugees > 30000)
+    if (scaled_num_agents > this.locationFinalThreshold)
     {
-      cfg = Object.create(this.colorConfigs["red"]);
+      chosen_color = "red";
     }
-    else if (location.refugees > 10000)
+    else if (scaled_num_agents > this.locationMiddleThreshold)
     {
-      cfg = Object.create(this.colorConfigs["green"]);
+      chosen_color = "green";
     }
-  
-    cfg.radius = Math.log(location.refugees) * this.defaultRadiusMultiplier;
+    let cfg = Object.create(this.colorConfigs[chosen_color]);
+    cfg.radius = scaled_num_agents * this.defaultRadiusMultiplier;
     
     let circle = L.circleMarker([location.lat, location.lng], cfg);
     this.circles.push(circle);
@@ -304,11 +343,26 @@ class CircleVisManager
       [link.from.lat, link.from.lng],
       [link.to.lat, link.to.lng]
     ];
-    let cfg = this.colorConfigs['green'];
-    if (link.forced){
-      cfg = this.colorConfigs['blue'];
+  
+    let chosen_color = "lightblue";
+    
+    let scaled_num_agents = link.forced ? -1 : Math.log(link.refugees);
+    if (scaled_num_agents > this.linkFinalThreshold)
+    {
+      chosen_color = "lightred";
     }
-    cfg.weight = link.refugees > 0 ? 3 + Math.min(Math.max(Math.floor(link.refugees / 40), 0), 4) : 3;
+    else if (scaled_num_agents > this.linkMiddleThreshold)
+    {
+      chosen_color = "lightgreen";
+    }
+  
+    if (link.forced)
+    {
+      chosen_color = "blue";
+    }
+    let cfg = Object.create(this.colorConfigs[chosen_color]);
+    cfg.weight = 3;
+    
     cfg.offset = 5;
   
     points.push(this.getPointForHalfedge(points));

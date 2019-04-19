@@ -11,6 +11,8 @@ class VisManager:
     if not self.output_file.writable():
       raise ValueError("Cant write to visualization output file")
     self.data = []
+    self.maxForLocation = -1
+    self.maxForLink = -1
 
   def visFormat(self):
     return {
@@ -36,6 +38,8 @@ class VisManager:
         "camp": location.camp,
         "capacity": location.capacity
       })
+      if location.numAgents > self.maxForLocation:
+        self.maxForLocation = location.numAgents
 
       for link in location.links:
         formatted_links.append({
@@ -53,15 +57,18 @@ class VisManager:
           "refugees": link.numAgents,
           "forced": link.forced_redirection
         })
+        if link.numAgents > self.maxForLink:
+          self.maxForLink = link.numAgents
     self.data[t]["locations"] = formatted_locations
     self.data[t]["links"] = formatted_links
 
   def addPersonDataAtTime(self, t, person):
     self.data[t]['actors'].append(person.getVisData())
 
-  def setMetaData(self, maxActorCount, center, startDate, name="Unnamed simulation", description="An unnamed visualization"):
+  def setMetaData(self, center, startDate, name="Unnamed simulation", description="An unnamed visualization"):
     self.metadata = {}
-    self.metadata["max"] = maxActorCount
+    self.metadata["maxForLocation"] = self.maxForLocation
+    self.metadata["maxForLink"] = self.maxForLink
     self.metadata["center"] = center
     self.metadata["start_date"] = startDate
     self.metadata["name"] = name
@@ -69,11 +76,8 @@ class VisManager:
 
 
   def saveVisData(self):
-    if "max" in self.metadata:
-      vis_data = {}
-      vis_data["meta"] = self.metadata
-      vis_data["data"] = self.data
-      json.dump(vis_data, self.output_file)
-    else:
-      json.dump(self.data, self.output_file)
+    vis_data = {}
+    vis_data["meta"] = self.metadata
+    vis_data["data"] = self.data
+    json.dump(vis_data, self.output_file)
     self.output_file.close()

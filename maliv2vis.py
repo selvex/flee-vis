@@ -333,12 +333,6 @@ if __name__ == "__main__":
     assert t == visoutput.addTimeStep()
     visoutput.addLocationDataAtTime(t, e.locations)
 
-  camp_names = ["Mbera", "Mentao", "Bobo-Dioulasso", "Abala", "Mangaize", "Niamey", "Tabareybarey"]
-  max = -1
-  for location in camp_names:
-    val = d.getMaxFromData(location, last_physical_day)
-    if val > max:
-      max = val
-  visoutput.setMetaData(max, [16.3700359, -2.2900239], "2012-02-29", "Mali", "Mali visualization")
+  visoutput.setMetaData([16.3700359, -2.2900239], "2012-02-29", "Mali", "Mali visualization")
   visoutput.saveVisData()
 

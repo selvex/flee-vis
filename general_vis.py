@@ -66,13 +66,7 @@ if __name__ == "__main__":
     assert t == visoutput.addTimeStep()
     visoutput.addLocationDataAtTime(t, e.locations)
 
-  max = -1
-  for location in d.header:
-    val = d.getMaxFromData(location, end_time)
-    if val > max:
-      max = val
-
-  visoutput.setMetaData(max, [48.208176,16.373819], "2009-12-24", "General", "General visualization")
+  visoutput.setMetaData([48.208176,16.373819], "2009-12-24", "General", "General visualization")
   visoutput.saveVisData()
   #79 746 24601 14784 38188
 

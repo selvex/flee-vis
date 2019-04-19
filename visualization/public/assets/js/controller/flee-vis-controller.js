@@ -76,9 +76,12 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       mapManager.camps.clearLayers();
       $scope.marker = [];
   
-      const max_value = Math.log(response.data.meta.max);
-      heatmapVis.setMaxMin(max_value);
-      circleVis.setRadiusMultiplier($scope.maxRadius / max_value);
+      const scaled_max_actor_count = Math.log(response.data.meta.maxForLocation);
+      heatmapVis.setMaxMin(scaled_max_actor_count);
+      circleVis.setRadiusMultiplier($scope.maxRadius / scaled_max_actor_count);
+      
+      circleVis.setupLinkThresholds(response.data.meta.maxForLink);
+      circleVis.setupCircleThresholds(response.data.meta.maxForLocation);
       
       mapManager.map.panTo(response.data.meta.center);
   

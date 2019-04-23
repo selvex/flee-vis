@@ -165,8 +165,9 @@ class HeatmapManager
    */
   buildConfig(data)
   {
-    const preped_data = {data: data};
-    return Object.assign(this.defaultConfig, preped_data);
+    let preped_data = Object.create(this.defaultConfig);
+    preped_data.data = data;
+    return preped_data;
   }
 }
 

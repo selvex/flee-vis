@@ -74,6 +74,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       circleVis.clearLayers();
       mapManager.cities.clearLayers();
       mapManager.camps.clearLayers();
+      heatmapVis.reset();
       $scope.marker = [];
   
       const scaled_max_actor_count = Math.log(response.data.meta.maxForLocation);

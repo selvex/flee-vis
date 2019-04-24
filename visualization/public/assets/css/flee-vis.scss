@@ -30,10 +30,6 @@ footer p {
 .box-shadow {
   box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.05); }
 
-#map {
-  height: 720px;
-}
-
 .flex-grow-1
 {
   flex-grow: 1;
@@ -91,4 +87,12 @@ footer p {
     background: #4CAF50; /* Green background */
     cursor: pointer; /* Cursor on hover */
   }
+}
+
+.tutorial
+{
+  margin-left: 3px;
+  font-size: 0.9em;
+  cursor: pointer;
+  color: blue;
 }

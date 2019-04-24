@@ -3,6 +3,9 @@ var globals = {
   data: Object.create(null),
   locationMapping: Object.create(null)
 };
+$(function() {
+  $('.tutorial').tooltip();
+});
 
 class MapManager
 {

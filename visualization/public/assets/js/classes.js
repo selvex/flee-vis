@@ -102,6 +102,7 @@ class HeatmapManager
       min: 0,
       data: []
     };
+    this.scalingMethod = new ScalingTool();
   }
   
   /**
@@ -138,9 +139,10 @@ class HeatmapManager
    */
   updateHeatmap(locations)
   {
+    let that = this;
     const scaled_locations = locations.map(function(location, index) {
       let scaled_location = Object.create(location);
-      scaled_location.refugees = location.refugees === 0 ? 0 : Math.log(location.refugees);
+      scaled_location.refugees = that.scalingMethod.scale(location.refugees);
       return scaled_location;
     });
     this.layer.setData(this.buildConfig(scaled_locations));
@@ -195,6 +197,8 @@ class CircleVisManager
     this.circles = [];
     this.lines = [];
     this.popups = [];
+    
+    this.scalingMethod = new ScalingTool();
   
     /**
      * Hashmap of color configurations for drawing poly-lines and circles.
@@ -225,9 +229,6 @@ class CircleVisManager
     
     this.defaultRadiusMultiplier = 15;
   
-    this.setupLinkThresholds(1000);
-    this.setupCircleThresholds(30000);
-  
     /**
      * We have to redraw routes after zoom. This ensures the half-edge is displayed correctly.
      * @type {CircleVisManager}
@@ -245,7 +246,7 @@ class CircleVisManager
    */
   setupLinkThresholds(maxAgentsOnLink)
   {
-    this.maxOnLink = Math.log(maxAgentsOnLink);
+    this.maxOnLink = this.scalingMethod.scaleLink(maxAgentsOnLink);
     const thresholds = Math.floor(this.maxOnLink / 3);
     this.linkMiddleThreshold = thresholds;
     this.linkFinalThreshold = thresholds * 2;
@@ -258,10 +259,10 @@ class CircleVisManager
    */
   setupCircleThresholds(maxAgentsOnLocation)
   {
-    this.maxOnLocation = Math.log(maxAgentsOnLocation);
+    this.maxOnLocation = this.scalingMethod.scale(maxAgentsOnLocation);
     const thresholds = Math.floor(maxAgentsOnLocation / 3);
-    this.locationMiddleThreshold = Math.log(thresholds);
-    this.locationFinalThreshold = Math.log(thresholds * 2);
+    this.locationMiddleThreshold = this.scalingMethod.scale(thresholds);
+    this.locationFinalThreshold = this.scalingMethod.scale(thresholds * 2);
   }
   
   /**
@@ -301,7 +302,7 @@ class CircleVisManager
   createCircle(location)
   {
     if (location.refugees === 0) return;
-    let scaled_num_agents = Math.log(location.refugees);
+    let scaled_num_agents = this.scalingMethod.scale(location.refugees);
     let chosen_color = "blue";
   
     if (scaled_num_agents > this.locationFinalThreshold)
@@ -352,7 +353,7 @@ class CircleVisManager
   
     let chosen_color = "lightblue";
     
-    let scaled_num_agents = link.forced ? -1 : Math.log(link.refugees);
+    let scaled_num_agents = link.forced ? -1 : this.scalingMethod.scaleLink(link.refugees);
     if (scaled_num_agents > this.linkFinalThreshold)
     {
       chosen_color = "lightred";
@@ -436,5 +437,143 @@ class CircleVisManager
   test()
   {
     console.log("Called");
+  }
+}
+
+class ScalingTool
+{
+  constructor()
+  {
+  
+  }
+  
+  scale(value)
+  {
+    console.warn("Default scaling applied, returning value as-is.");
+    return value;
+  }
+  
+  scaleLink(value)
+  {
+    console.warn("Default scaleLink called");
+    return this.scale(value);
+  }
+  
+  describe()
+  {
+    return "Default Scaling tool - should not be in use.";
+  }
+}
+
+class LogScaling extends ScalingTool
+{
+  constructor()
+  {
+    super();
+  }
+  
+  scale(value)
+  {
+    return value === 0 ? 0 : Math.log(value);
+  }
+  
+  scaleLink(value)
+  {
+    return this.scale(value);
+  }
+  
+  describe()
+  {
+    return "Logarithmic function";
+  }
+}
+
+class LogisticGrowth extends ScalingTool
+{
+  constructor()
+  {
+    super();
+    this.midPointDeviation = 2;
+    this.config = Object.create(null);
+    this.linkConfig = Object.create(null);
+  }
+  
+  setConfig(config)
+  {
+    this.config = config;
+  }
+  
+  setLinkConfig(config)
+  {
+    this.linkConfig = config;
+  }
+  
+  scale(value)
+  {
+    return this.calculate(value, this.config.ceiling, this.config.growthRate, this.config.midPoint);
+  }
+  
+  scaleLink(value)
+  {
+    return this.calculate(value, this.linkConfig.ceiling, this.linkConfig.growthRate, this.linkConfig.midPoint);
+  }
+  
+  setParameters(ceiling, growthRate, midPoint)
+  {
+    this.config.ceiling = ceiling;
+    this.config.growthRate = growthRate;
+    this.config.midPoint = midPoint;
+  }
+  
+  setLinkParameters(ceiling, growthRate, midPoint)
+  {
+    this.linkConfig.ceiling = ceiling;
+    this.linkConfig.growthRate = growthRate;
+    this.linkConfig.midPoint = midPoint;
+  }
+  
+  calculate(value, ceiling, growthRate, offsetParameter)
+  {
+    let result = ceiling / (1 + Math.exp(-growthRate * (value - offsetParameter)));
+    //console.log(result);
+    //console.log(value, ceiling, growthRate, offsetParameter);
+    return result;
+  }
+  
+  calculateGrowthRate(start, end, time)
+  {
+    let present = end;
+    let past = start;
+  
+    if (past === 0)
+    {
+      past = 1;
+    }
+    
+    let result = present / past;
+    result = Math.pow(result, 1 / time);
+    result -= 1;
+    return result;
+  }
+  
+  calculateParameters(start, end, time)
+  {
+    let growth = this.calculateGrowthRate(start, end, time);
+    return {ceiling: end, growthRate: growth, midPoint: Math.floor(time / this.midPointDeviation)};
+  }
+  
+  describe()
+  {
+    return "Logistic Growth function";
+  }
+}
+
+class ScalingManager
+{
+  constructor()
+  {
+    this.scalingMethods = Object.create(null);
+    this.scalingMethods['log'] = new LogScaling();
+    this.scalingMethods['logisticGrowth'] = new LogisticGrowth();
   }
 }

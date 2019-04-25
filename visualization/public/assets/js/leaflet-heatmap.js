@@ -69,6 +69,12 @@
       map.on('moveend', this._reset, this);
       this._draw();
     },
+  
+    reconfigure: function(cfg) {
+      this.cfg = cfg;
+      this._heatmap.configure(cfg);
+      this._reset();
+    },
 
     addTo: function (map) {
       map.addLayer(this);

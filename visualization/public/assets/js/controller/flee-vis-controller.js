@@ -40,6 +40,36 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   $scope.selectedSimulation = Object.create(null);
   $scope.loadedSimulation = Object.create(null);
   
+  $scope.defaultSettings = {
+    map: {
+      height: 720
+    },
+    heatmap: {
+      radius: 1,
+      maxOpacity: 0.8,
+      scaleRadius: true,
+      useLocalExtrema: false,
+      latField: 'lat',
+      lngField: 'lng',
+      valueField: 'refugees'
+    }
+  };
+  
+  $scope.settings = {
+    map: {
+      height: $scope.defaultSettings.map.height
+    },
+    heatmap: {
+      radius: $scope.defaultSettings.heatmap.radius,
+      maxOpacity: $scope.defaultSettings.heatmap.maxOpacity,
+      scaleRadius: $scope.defaultSettings.heatmap.scaleRadius,
+      useLocalExtrema: $scope.defaultSettings.heatmap.useLocalExtrema,
+      latField: $scope.defaultSettings.heatmap.latField,
+      lngField: $scope.defaultSettings.heatmap.lngField,
+      valueField: $scope.defaultSettings.heatmap.valueField
+    }
+  };
+  
   $scope.fetchAvailableSimulations = function() {
     return $http({
       method: 'get',
@@ -151,6 +181,33 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       {
         circleVis.createLine($scope.links[i])
       }
+    }
+  };
+  
+  $scope.updateMap = function() {
+    mapManager.map.invalidateSize();
+  };
+  
+  $scope.updateHeatmap = function() {
+    if (heatmapVis.isActive())
+    {
+      heatmapVis.reconfigure($scope.settings.heatmap);
+    }
+  };
+  
+  $scope.updateHeatmapScaleRadius = function() {
+    if (heatmapVis.isActive())
+    {
+      if ($scope.settings.heatmap.scaleRadius)
+      {
+        $scope.settings.heatmap.radius = 1;
+      }
+      else
+      {
+        $scope.settings.heatmap.radius = 10;
+      }
+  
+      $scope.updateHeatmap();
     }
   };
   
@@ -318,9 +375,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   };
   
   $scope.dbg = function() {
-    $scope.selectedSimulation = $scope.availableSimulations["general"];
     logger.log($scope.selectedSimulation);
-    $scope.getData();
   };
   
   // Events that use functions defined above

@@ -169,6 +169,11 @@ class HeatmapManager
     preped_data.data = data;
     return preped_data;
   }
+  
+  reconfigure(cfg)
+  {
+    this.layer.reconfigure(cfg);
+  }
 }
 
 /**

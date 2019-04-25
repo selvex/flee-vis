@@ -70,7 +70,7 @@
         <div class="container-fluid px-5">
           <div class="row">
             <div class="col-md-12">
-              <div id="map" class="card mb-4 box-shadow">
+              <div id="map" class="card mb-4 box-shadow" ng-style="{height: settings.map.height + 'px'}">
                 <div class="card-body">
                   <p class="card-text">
                     Some text for you!
@@ -166,13 +166,37 @@
             <div class="col-md-4">
               <div class="card">
                 <div class="card-body">
-                  <h5 class="card-title">Debug Buttons</h5>
-                  <button type="button" class="btn btn-primary" ng-click="advance()">
-                    Advance
-                  </button>
-                  <button type="button" class="btn btn-primary" ng-click="getData()">
-                    getData
-                  </button>
+                  <h5 class="card-title">Settings</h5>
+                  <form class="">
+                    <div class="form-group">
+                      <label for="mapHeightInput">Map Height</label>
+                      <input ng-model="settings.map.height" type="number" max="2160" class="form-control" id="mapHeightInput" placeholder="720" ng-change="updateMap()">
+                      <input ng-model="settings.map.height" type="range" step="32" min="200" max="2160" value="720" class="mt-2 w-100" id="mapHeightInputRange"  aria-label="Current map height" aria-describedby="currentMapHeight" ng-change="updateMap()">
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                      <h6>Heatmap Settings</h6>
+                      <div class="form-group">
+                        <label for="heatmapRadiusInput">Radius</label>
+                        <input ng-model="settings.heatmap.radius" type="number" max="{{ settings.heatmap.scaleRadius ? 5 : 200 }}" class="form-control" id="heatmapRadiusInput" placeholder="1" ng-change="updateHeatmap()">
+                        <input ng-model="settings.heatmap.radius" type="range" step="{{ settings.heatmap.scaleRadius ? 0.1 : 1 }}" min="{{ settings.heatmap.scaleRadius ? 0.1 : 1 }}" max="{{ settings.heatmap.scaleRadius ? 5 : 200 }}" value="1" class="mt-2 w-100" id="heatmapRadiusInputRange"  aria-label="CurrentHeatmapRadius" aria-describedby="CurrentHeatmapRadius" ng-change="updateHeatmap()">
+                      </div>
+                      <div class="form-group">
+                        <label for="heatmapOpacityInput">Opacity</label>
+                        <input ng-model="settings.heatmap.maxOpacity" type="number" step="0.1" min="0.1" max="1" class="form-control" id="heatmapOpacityInput" placeholder="0.8" ng-change="updateHeatmap()">
+                        <input ng-model="settings.heatmap.maxOpacity" type="range" step="0.1" min="0.1" max="1" value="0.8" class="mt-2 w-100" id="heatmapOpacityInputRange"  aria-label="CurrentHeatmapOpacity" aria-describedby="CurrentHeatmapOpacity" ng-change="updateHeatmap()">
+                      </div>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" ng-model="settings.heatmap.scaleRadius" id="heatmapScaleRadius" ng-change="updateHeatmapScaleRadius()">
+                        <label class="form-check-label" for="heatmapScaleRadius">Scale radius</label> <span class="tutorial" data-toggle="tooltip" data-placement="right" data-html="true" title="If the heatmap should change it's radius when zooming in or out. <br><br><strong>ON:</strong> Heatmap always occupies same <em>map space</em>.<br><br><strong>OFF:</strong> Heatmap always occupies same <em>screen space</em>.">(?)</span>
+                      </div>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" ng-model="settings.heatmap.useLocalExtrema" id="heatmapUseLocalExtrema" ng-change="updateHeatmap()">
+                        <label class="form-check-label" for="heatmapUseLocalExtrema">Use local extrema</label> <span class="tutorial" data-toggle="tooltip" data-placement="right" data-html="true" title="If the heatmap should only take into account what is currently visible on the map. <br><br><strong>ON:</strong> Red spots mark the maximum of the data points <em>currently visible on the map</em>.<br><br><strong>OFF:</strong> Red spots mark the <em>global maximum</em>.">(?)</span>
+                      </div>
+                    </div>
+                    <button class="btn btn-primary" ng-click="dbg()">Debug</button>
+                  </form>
                 </div>
               </div>
             </div>

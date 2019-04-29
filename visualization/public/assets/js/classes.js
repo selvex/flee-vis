@@ -81,6 +81,39 @@ class TimedData
   {
     return this.currentStep === this.endStep;
   }
+  
+  /**
+   * Helper function that returns the state of the simulation
+   * in the final time step.
+   * @returns {*} The last time step.
+   */
+  lastStep()
+  {
+    return this.buildConfig(this.internal[this.endStep]);
+  }
+  
+  prepareLocationAndLinkData()
+  {
+    this.locationValues = new Set();
+    this.linkValues = new Set();
+    for (let i = 0; i < this.internal.length; i++)
+    {
+      for (let j = 0; j < this.internal[i]["locations"].length; j++)
+      {
+        this.locationValues.add(this.internal[i]["locations"][j].refugees);
+      }
+      for (let j = 0; j < this.internal[i]["links"].length; j++)
+      {
+        this.linkValues.add(this.internal[i]["links"][j].refugees);
+      }
+    }
+    
+    this.locationValues = Array.from(this.locationValues);
+    this.linkValues = Array.from(this.linkValues);
+    
+    this.locationValues.sort((a, b) => a - b);
+    this.linkValues.sort((a, b) => a - b);
+  }
 }
 
 /**
@@ -218,7 +251,7 @@ class CircleVisManager
       color: 'yellow', fillColor: '#ff6', fillOpacity: 0.5
     };
     this.colorConfigs['lightblue'] = {
-      color: '#7BD9E8', fillOpacity: 0.5
+      color: '#1C9BFF', fillOpacity: 0.5
     };
     this.colorConfigs['lightgreen'] = {
       color: '#42E833', fillOpacity: 0.5
@@ -239,30 +272,91 @@ class CircleVisManager
     })
   }
   
-  /**
-   * Set up the values needed for choosing which color is given to a specific link. Takes the maximum amount
-   * of agents on a link from the meta data and defines thresholds for the different colors.
-   * @param maxAgentsOnLink
-   */
-  setupLinkThresholds(maxAgentsOnLink)
+  setupGlobalThresholds(dataSet)
   {
-    this.maxOnLink = this.scalingMethod.scaleLink(maxAgentsOnLink);
-    const thresholds = Math.floor(this.maxOnLink / 3);
-    this.linkMiddleThreshold = thresholds;
-    this.linkFinalThreshold = thresholds * 2;
+    let locations = dataSet.locationValues;
+    let links = dataSet.linkValues;
+  
+    let location_thresh = this.calculateGlobalThresholds(locations);
+    let link_thresh = this.calculateGlobalThresholds(links, true);
+  
+    this.maxOnLocation = location_thresh.max;
+    this.locationMiddleThreshold = location_thresh.middleThreshold;
+    this.locationFinalThreshold = location_thresh.finalThreshold;
+  
+    this.maxOnLink = link_thresh.max;
+    this.linkMiddleThreshold = link_thresh.middleThreshold;
+    this.linkFinalThreshold = link_thresh.finalThreshold;
   }
   
-  /**
-   * Set up the values needed for choosing which color is given to a specific circle. Takes the maximum amount
-   * of agents on a location from the meta data and defines thresholds for the different colors.
-   * @param maxAgentsOnLocation
-   */
-  setupCircleThresholds(maxAgentsOnLocation)
+  setupThresholds(lastStep)
   {
-    this.maxOnLocation = this.scalingMethod.scale(maxAgentsOnLocation);
-    const thresholds = Math.floor(maxAgentsOnLocation / 3);
-    this.locationMiddleThreshold = this.scalingMethod.scale(thresholds);
-    this.locationFinalThreshold = this.scalingMethod.scale(thresholds * 2);
+    let locations = lastStep['locations'];
+    let links = lastStep['links'];
+  
+    let location_thresh = this.calculateThresholdsForStep(locations);
+    let link_thresh = this.calculateThresholdsForStep(links, true);
+  
+    this.maxOnLocation = location_thresh.max;
+    this.locationMiddleThreshold = location_thresh.middleThreshold;
+    this.locationFinalThreshold = location_thresh.finalThreshold;
+  
+    this.maxOnLink = link_thresh.max;
+    this.linkMiddleThreshold = link_thresh.middleThreshold;
+    this.linkFinalThreshold = link_thresh.finalThreshold;
+  }
+  
+  calculateThresholdsForStep(data, link = false)
+  {
+    let data_copy = data.slice(0);
+    let numbers = data_copy.map(function(location) {
+      return location.refugees;
+    });
+    
+    numbers = numbers.filter(function(number) {
+      return number !== 0;
+    });
+    
+    numbers.sort((a, b) => a - b);
+  
+    let that = this;
+    let scaled_sorted_locations = numbers.map(function(location) {
+      if (link)
+      {
+        return that.scalingMethod.scaleLink(location);
+      }
+      return that.scalingMethod.scale(location);
+    });
+  
+    let max = scaled_sorted_locations[scaled_sorted_locations.length - 1];
+  
+    const threshold_index = Math.floor(scaled_sorted_locations.length / 3);
+  
+    let middle_thresh = scaled_sorted_locations[threshold_index];
+    let final_thresh = scaled_sorted_locations[threshold_index * 2];
+    
+    return {max: max, middleThreshold: middle_thresh, finalThreshold: final_thresh};
+  }
+  
+  calculateGlobalThresholds(data, link = false)
+  {
+    let that = this;
+    let scaled_sorted_locations = data.map(function(location) {
+      if (link)
+      {
+        return that.scalingMethod.scaleLink(location);
+      }
+      return that.scalingMethod.scale(location);
+    });
+  
+    let max = scaled_sorted_locations[scaled_sorted_locations.length - 1];
+  
+    const threshold_index = Math.floor(scaled_sorted_locations.length / 3);
+  
+    let middle_thresh = scaled_sorted_locations[threshold_index];
+    let final_thresh = scaled_sorted_locations[threshold_index * 2];
+  
+    return {max: max, middleThreshold: middle_thresh, finalThreshold: final_thresh};
   }
   
   /**
@@ -568,6 +662,24 @@ class LogisticGrowth extends ScalingTool
   }
 }
 
+class RawScaling extends ScalingTool
+{
+  constructor()
+  {
+    super();
+  }
+  
+  scale(value)
+  {
+    return value;
+  }
+  
+  describe()
+  {
+    return "No scaling";
+  }
+}
+
 class ScalingManager
 {
   constructor()
@@ -575,5 +687,6 @@ class ScalingManager
     this.scalingMethods = Object.create(null);
     this.scalingMethods['log'] = new LogScaling();
     this.scalingMethods['logisticGrowth'] = new LogisticGrowth();
+    this.scalingMethods['raw'] = new RawScaling();
   }
 }

@@ -12,10 +12,13 @@ app.config(['$provide', function($provide) {
   $provide.factory('logger', function() {
     return new Logger(true);
   });
+  $provide.factory('scaling', function() {
+    return new ScalingManager();
+  });
 }]);
 
 
-app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout', 'mapManager','circleVis', 'heatmapVis', 'logger', function($scope, $http, $interval, $timeout, mapManager, circleVis, heatmapVis, logger) {
+app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout', 'mapManager','circleVis', 'heatmapVis', 'logger', 'scaling', function($scope, $http, $interval, $timeout, mapManager, circleVis, heatmapVis, logger, scaling) {
   $scope.marker = [];
   $scope.playing = false;
   $scope.endStep = 500;
@@ -23,6 +26,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   $scope.startDate = new Date("2019-02-29");
   $scope.currentDate = $scope.startDate;
   $scope.simulationSpeed = 15.0;
+  $scope.showSettings = true;
   /**
    * Two options:
    * - using circle markers
@@ -39,6 +43,9 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   $scope.availableSimulations = Object.create(null);
   $scope.selectedSimulation = Object.create(null);
   $scope.loadedSimulation = Object.create(null);
+  $scope.meta = Object.create(null);
+  
+  $scope.scalingMethods = scaling.scalingMethods;
   
   $scope.defaultSettings = {
     map: {
@@ -52,6 +59,11 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       latField: 'lat',
       lngField: 'lng',
       valueField: 'refugees'
+    },
+    scalingMethod: 'log',
+    logisticGrowth: {
+      internal: {},
+      midPointDeviation: 12
     }
   };
   
@@ -67,6 +79,11 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       latField: $scope.defaultSettings.heatmap.latField,
       lngField: $scope.defaultSettings.heatmap.lngField,
       valueField: $scope.defaultSettings.heatmap.valueField
+    },
+    scalingMethod: $scope.defaultSettings.scalingMethod,
+    logisticGrowth: {
+      internal: {},
+      midPointDeviation: $scope.defaultSettings.logisticGrowth.midPointDeviation
     }
   };
   
@@ -107,12 +124,26 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       heatmapVis.reset();
       $scope.marker = [];
   
-      const scaled_max_actor_count = Math.log(response.data.meta.maxForLocation);
+      let max_location = response.data.meta.maxForLocation;
+      let max_link = response.data.meta.maxForLink;
+      let sim_length = response.data.data.length;
+      $scope.meta = Object.assign({}, response.data.meta);
+  
+      if ($scope.settings.scalingMethod === 'logisticGrowth')
+      {
+        $scope.setupLogisticGrowth(max_location, max_link);
+      }
+  
+      let scalingMethod = scaling.scalingMethods[$scope.settings.scalingMethod];
+      heatmapVis.scalingMethod = scalingMethod;
+      circleVis.scalingMethod = scalingMethod;
+      
+      const scaled_max_actor_count = scalingMethod.scale(max_location);
       heatmapVis.setMaxMin(scaled_max_actor_count);
       circleVis.setRadiusMultiplier($scope.maxRadius / scaled_max_actor_count);
       
-      circleVis.setupLinkThresholds(response.data.meta.maxForLink);
-      circleVis.setupCircleThresholds(response.data.meta.maxForLocation);
+      circleVis.setupLinkThresholds(max_link);
+      circleVis.setupCircleThresholds(max_location);
       
       mapManager.map.panTo(response.data.meta.center);
   
@@ -209,6 +240,54 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   
       $scope.updateHeatmap();
     }
+  };
+  
+  $scope.updateScaleMethod = function() {
+    if ($scope.settings.scalingMethod === 'logisticGrowth')
+    {
+      $scope.setupLogisticGrowth($scope.meta.maxForLocation, $scope.meta.maxForLink);
+    }
+  
+    let scalingMethod = scaling.scalingMethods[$scope.settings.scalingMethod];
+    heatmapVis.scalingMethod = scalingMethod;
+    circleVis.scalingMethod = scalingMethod;
+  
+    const scaled_max_actor_count = scalingMethod.scale($scope.meta.maxForLocation);
+    heatmapVis.setMaxMin(scaled_max_actor_count);
+    circleVis.setRadiusMultiplier($scope.maxRadius / scaled_max_actor_count);
+  
+    circleVis.setupLinkThresholds($scope.meta.maxForLink);
+    circleVis.setupCircleThresholds($scope.meta.maxForLocation);
+    $scope.myUpdateData();
+  };
+  
+  $scope.setupLogisticGrowth = function(maxLocation, maxLink) {
+    $scope.settings.logisticGrowth.internal.location = {};
+    $scope.settings.logisticGrowth.internal.link = {};
+  
+    scaling.scalingMethods['logisticGrowth'].midPointDeviation = $scope.settings.logisticGrowth.midPointDeviation;
+    $scope.settings.logisticGrowth.internal.location = scaling.scalingMethods['logisticGrowth'].calculateParameters(0, maxLocation, maxLocation);
+    $scope.settings.logisticGrowth.internal.link = scaling.scalingMethods['logisticGrowth'].calculateParameters(0, maxLink, maxLink);
+  
+    scaling.scalingMethods['logisticGrowth'].setConfig($scope.settings.logisticGrowth.internal.location);
+    scaling.scalingMethods['logisticGrowth'].setLinkConfig($scope.settings.logisticGrowth.internal.link);
+  };
+  
+  $scope.updateLogistic = function() {
+    let scalingMethod = scaling.scalingMethods[$scope.settings.scalingMethod];
+    const scaled_max_actor_count = scalingMethod.scale($scope.meta.maxForLocation);
+    heatmapVis.setMaxMin(scaled_max_actor_count);
+    circleVis.setRadiusMultiplier($scope.maxRadius / scaled_max_actor_count);
+  
+    circleVis.setupLinkThresholds($scope.meta.maxForLink);
+    circleVis.setupCircleThresholds($scope.meta.maxForLocation);
+    $scope.myUpdateData();
+  };
+  
+  $scope.toggleSettings = function() {
+    $scope.showSettings = !$scope.showSettings;
+    // invalidate map size after toggling settings to prevent weird behaviour
+    $timeout($scope.updateMap, 50);
   };
   
   /**
@@ -375,7 +454,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   };
   
   $scope.dbg = function() {
-    logger.log($scope.selectedSimulation);
+    $scope.showSettings = !$scope.showSettings;
   };
   
   // Events that use functions defined above
@@ -385,6 +464,8 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   mapManager.map.on('overlayadd', $scope.myUpdateData);
   
   $scope.fetchAvailableSimulations().then(function() {
-    $timeout($scope.getData(), 500)
+    $timeout($scope.getData(), 500).then(function() {
+      $scope.toggleSettings();
+    });
   });
 }]);

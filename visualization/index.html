@@ -68,68 +68,143 @@
 
       <div class="py-5 bg-light">
         <div class="container-fluid px-5">
-          <div class="row">
-            <div class="col-md-12">
-              <div id="map" class="card mb-4 box-shadow" ng-style="{height: settings.map.height + 'px'}">
+          <div class="row mb-4">
+            <div class="col">
+              <div class="container-fluid">
+                <div class="row">
+                  <div class="col">
+                    <div id="map" class="card mb-4 box-shadow" ng-style="{height: settings.map.height + 'px'}">
+                      <div class="card-body">
+                        <p class="card-text">
+                          Some text for you!
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row mx-5">
+                  <div class="col">
+                    <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                      <div class="btn-group">
+                        <button type="button" class="btn btn-secondary btn-vis-player" ng-click="beginning()">
+                          <i class="fas fa-fast-backward"></i>
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-vis-player" ng-click="back()">
+                          <i class="fas fa-step-backward"></i>
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-vis-player" ng-click="play()" ng-hide="playing">
+                          <i class="fas fa-play"></i>
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-vis-player" ng-click="stop()" ng-show="playing">
+                          <i class="fas fa-pause"></i>
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-vis-player" ng-click="forward()">
+                          <i class="fas fa-step-forward"></i>
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-vis-player btn-vis-player-end" ng-click="end()">
+                          <i class="fas fa-fast-forward"></i>
+                        </button>
+                      </div>
+                      <div class="input-group flex-grow-1">
+                        <div class="input-group-prepend">
+                          <div class="input-group-text" id="currentDate">{{ formatDate(currentDate) }}</div>
+                        </div>
+                        <div class="flex-grow-1 d-flex align-content-center vis-slider-container">
+                          <input ng-change="myUpdateData()" ng-model="dataSet.currentStep" type="range" min="0" max="{{ dataSet.endStep }}" value="0" class="flex-grow-1 mx-2" id="timeline"  aria-label="Simulation timeline" aria-describedby="timeline">
+                        </div>
+                        <div class="input-group-append">
+                          <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-tachometer-alt"></i>
+                          </button>
+                          <div class="dropdown-menu">
+                            <form class="px-4 py-3">
+                              <div class="form-group">
+                                <label for="simSpeedInputText">Simulation Speed</label>
+                                <input ng-model="simulationSpeed" type="number" max="15" class="form-control" id="simSpeedInputText" placeholder="1.0">
+                                <input ng-model="simulationSpeed" type="range" step="0.5" min="0.5" max="15" value="1" class="mt-2 w-100" id="simSpeedInputRange"  aria-label="Current simulation speed" aria-describedby="currentSpeed">
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-4" ng-if="showSettings">
+              <div class="card">
                 <div class="card-body">
-                  <p class="card-text">
-                    Some text for you!
-                  </p>
+                  <div class="d-flex">
+                    <h5 class="card-title">Settings</h5><button class="ml-auto btn btn-sm btn-link small" style="margin-top:-1em;" ng-click="toggleSettings()">Click here to hide</button>
+                  </div>
+                  <form class="">
+                    <div class="form-group">
+                      <label for="mapHeightInput">Map Height</label>
+                      <input ng-model="settings.map.height" type="number" max="2160" class="form-control" id="mapHeightInput" placeholder="720" ng-change="updateMap()">
+                      <input ng-model="settings.map.height" type="range" step="32" min="200" max="2160" value="720" class="mt-2 w-100" id="mapHeightInputRange"  aria-label="Current map height" aria-describedby="currentMapHeight" ng-change="updateMap()">
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                      <h6>Heatmap Settings</h6>
+                      <div class="form-group">
+                        <label for="heatmapRadiusInput">Radius</label>
+                        <input ng-model="settings.heatmap.radius" type="number" max="{{ settings.heatmap.scaleRadius ? 5 : 200 }}" class="form-control" id="heatmapRadiusInput" placeholder="1" ng-change="updateHeatmap()">
+                        <input ng-model="settings.heatmap.radius" type="range" step="{{ settings.heatmap.scaleRadius ? 0.1 : 1 }}" min="{{ settings.heatmap.scaleRadius ? 0.1 : 1 }}" max="{{ settings.heatmap.scaleRadius ? 5 : 200 }}" value="1" class="mt-2 w-100" id="heatmapRadiusInputRange"  aria-label="CurrentHeatmapRadius" aria-describedby="CurrentHeatmapRadius" ng-change="updateHeatmap()">
+                      </div>
+                      <div class="form-group">
+                        <label for="heatmapOpacityInput">Opacity</label>
+                        <input ng-model="settings.heatmap.maxOpacity" type="number" step="0.1" min="0.1" max="1" class="form-control" id="heatmapOpacityInput" placeholder="0.8" ng-change="updateHeatmap()">
+                        <input ng-model="settings.heatmap.maxOpacity" type="range" step="0.1" min="0.1" max="1" value="0.8" class="mt-2 w-100" id="heatmapOpacityInputRange"  aria-label="CurrentHeatmapOpacity" aria-describedby="CurrentHeatmapOpacity" ng-change="updateHeatmap()">
+                      </div>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" ng-model="settings.heatmap.scaleRadius" id="heatmapScaleRadius" ng-change="updateHeatmapScaleRadius()">
+                        <label class="form-check-label" for="heatmapScaleRadius">Scale radius</label> <span class="tutorial" data-toggle="tooltip" data-placement="right" data-html="true" title="If the heatmap should change it's radius when zooming in or out. <br><br><strong>ON:</strong> Heatmap always occupies same <em>map space</em>.<br><br><strong>OFF:</strong> Heatmap always occupies same <em>screen space</em>.">(?)</span>
+                      </div>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" ng-model="settings.heatmap.useLocalExtrema" id="heatmapUseLocalExtrema" ng-change="updateHeatmap()">
+                        <label class="form-check-label" for="heatmapUseLocalExtrema">Use local extrema</label> <span class="tutorial" data-toggle="tooltip" data-placement="right" data-html="true" title="If the heatmap should only take into account what is currently visible on the map. <br><br><strong>ON:</strong> Red spots mark the maximum of the data points <em>currently visible on the map</em>.<br><br><strong>OFF:</strong> Red spots mark the <em>global maximum</em>.">(?)</span>
+                      </div>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                      <h6>Scaling methods</h6>
+                      <div class="form-check" ng-repeat="(name, value) in scalingMethods">
+                        <input ng-model="settings.scalingMethod" class="form-check-input" type="radio" id="scalingMethod{{ $index }}" value="{{ name }}" ng-change="updateScaleMethod()">
+                        <label class="form-check-label" for="scalingMethod{{ $index }}">
+                          {{ value.describe() }}
+                        </label>
+                      </div>
+                      <hr ng-if="settings.scalingMethod === 'logisticGrowth'">
+                      <div class="form-group" ng-if="settings.scalingMethod === 'logisticGrowth'">
+                        <label for="logisticGrowthMidPointDeviation">Mid Point Deviation</label>
+                        <input ng-model="settings.logisticGrowth.midPointDeviation" type="number" min="1" max="100" class="form-control" id="logisticGrowthMidPointDeviation" placeholder="1" ng-change="updateScaleMethod()">
+                        <input ng-model="settings.logisticGrowth.midPointDeviation" type="range" step="1" min="1" max="255" value="2" class="mt-2 w-100" id="logisticGrowthMidPointDeviationRange" ng-change="updateScaleMethod()">
+                      </div>
+                      <hr>
+                      <div class="form-group" ng-if="settings.scalingMethod === 'logisticGrowth'">
+                        <h6>Customize logistic growth function</h6>
+                        <label for="logisticGrowthCeiling">Ceiling</label>
+                        <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.location.ceiling" type="number" id="logisticGrowthCeiling" ng-change="updateLogistic()">
+
+                        <label for="logisticGrowthMidPoint">Offset</label>
+                        <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.location.midPoint" type="number" id="logisticGrowthMidPoint" ng-change="updateLogistic()">
+
+                        <label for="logisticGrowthGrowthRate">Growth Rate</label>
+                        <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.location.growthRate" type="number" step="any" id="logisticGrowthGrowthRate" ng-change="updateLogistic()">
+                      </div>
+                      <hr ng-if="settings.scalingMethod === 'logisticGrowth'">
+                    </div>
+                  </form>
+                  <button class="btn btn-primary" ng-click="toggleSettings()">Hide Settings</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div class="container">
-          <div class="row mb-4">
-            <div class="col-md-12 mx-auto d-flex flex-column">
-              <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
-                <div class="btn-group">
-                  <button type="button" class="btn btn-secondary btn-vis-player" ng-click="beginning()">
-                    <i class="fas fa-fast-backward"></i>
-                  </button>
-                  <button type="button" class="btn btn-secondary btn-vis-player" ng-click="back()">
-                    <i class="fas fa-step-backward"></i>
-                  </button>
-                  <button type="button" class="btn btn-secondary btn-vis-player" ng-click="play()" ng-hide="playing">
-                    <i class="fas fa-play"></i>
-                  </button>
-                  <button type="button" class="btn btn-secondary btn-vis-player" ng-click="stop()" ng-show="playing">
-                    <i class="fas fa-pause"></i>
-                  </button>
-                  <button type="button" class="btn btn-secondary btn-vis-player" ng-click="forward()">
-                    <i class="fas fa-step-forward"></i>
-                  </button>
-                  <button type="button" class="btn btn-secondary btn-vis-player btn-vis-player-end" ng-click="end()">
-                    <i class="fas fa-fast-forward"></i>
-                  </button>
-                </div>
-                <div class="input-group flex-grow-1">
-                  <div class="input-group-prepend">
-                    <div class="input-group-text" id="currentDate">{{ formatDate(currentDate) }}</div>
-                  </div>
-                  <div class="flex-grow-1 d-flex align-content-center vis-slider-container">
-                    <input ng-change="myUpdateData()" ng-model="dataSet.currentStep" type="range" min="0" max="{{ dataSet.endStep }}" value="0" class="flex-grow-1 mx-2" id="timeline"  aria-label="Simulation timeline" aria-describedby="timeline">
-                  </div>
-                  <div class="input-group-append">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      <i class="fas fa-tachometer-alt"></i>
-                    </button>
-                    <div class="dropdown-menu">
-                      <form class="px-4 py-3">
-                        <div class="form-group">
-                          <label for="simSpeedInputText">Simulation Speed</label>
-                          <input ng-model="simulationSpeed" type="number" max="15" class="form-control" id="simSpeedInputText" placeholder="1.0">
-                          <input ng-model="simulationSpeed" type="range" step="0.5" min="0.5" max="15" value="1" class="mt-2 w-100" id="simSpeedInputRange"  aria-label="Current simulation speed" aria-describedby="currentSpeed">
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                </div>
 
-              </div>
-            </div>
-          </div>
           <div class="row">
             <div class="col-md-4">
               <div class="card">
@@ -164,39 +239,12 @@
               </div>
             </div>
             <div class="col-md-4">
+              <!-- style="position: fixed; right: 0; top: 0; z-index: 999;" -->
               <div class="card">
                 <div class="card-body">
-                  <h5 class="card-title">Settings</h5>
-                  <form class="">
-                    <div class="form-group">
-                      <label for="mapHeightInput">Map Height</label>
-                      <input ng-model="settings.map.height" type="number" max="2160" class="form-control" id="mapHeightInput" placeholder="720" ng-change="updateMap()">
-                      <input ng-model="settings.map.height" type="range" step="32" min="200" max="2160" value="720" class="mt-2 w-100" id="mapHeightInputRange"  aria-label="Current map height" aria-describedby="currentMapHeight" ng-change="updateMap()">
-                    </div>
-                    <hr>
-                    <div class="form-group">
-                      <h6>Heatmap Settings</h6>
-                      <div class="form-group">
-                        <label for="heatmapRadiusInput">Radius</label>
-                        <input ng-model="settings.heatmap.radius" type="number" max="{{ settings.heatmap.scaleRadius ? 5 : 200 }}" class="form-control" id="heatmapRadiusInput" placeholder="1" ng-change="updateHeatmap()">
-                        <input ng-model="settings.heatmap.radius" type="range" step="{{ settings.heatmap.scaleRadius ? 0.1 : 1 }}" min="{{ settings.heatmap.scaleRadius ? 0.1 : 1 }}" max="{{ settings.heatmap.scaleRadius ? 5 : 200 }}" value="1" class="mt-2 w-100" id="heatmapRadiusInputRange"  aria-label="CurrentHeatmapRadius" aria-describedby="CurrentHeatmapRadius" ng-change="updateHeatmap()">
-                      </div>
-                      <div class="form-group">
-                        <label for="heatmapOpacityInput">Opacity</label>
-                        <input ng-model="settings.heatmap.maxOpacity" type="number" step="0.1" min="0.1" max="1" class="form-control" id="heatmapOpacityInput" placeholder="0.8" ng-change="updateHeatmap()">
-                        <input ng-model="settings.heatmap.maxOpacity" type="range" step="0.1" min="0.1" max="1" value="0.8" class="mt-2 w-100" id="heatmapOpacityInputRange"  aria-label="CurrentHeatmapOpacity" aria-describedby="CurrentHeatmapOpacity" ng-change="updateHeatmap()">
-                      </div>
-                      <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" ng-model="settings.heatmap.scaleRadius" id="heatmapScaleRadius" ng-change="updateHeatmapScaleRadius()">
-                        <label class="form-check-label" for="heatmapScaleRadius">Scale radius</label> <span class="tutorial" data-toggle="tooltip" data-placement="right" data-html="true" title="If the heatmap should change it's radius when zooming in or out. <br><br><strong>ON:</strong> Heatmap always occupies same <em>map space</em>.<br><br><strong>OFF:</strong> Heatmap always occupies same <em>screen space</em>.">(?)</span>
-                      </div>
-                      <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" ng-model="settings.heatmap.useLocalExtrema" id="heatmapUseLocalExtrema" ng-change="updateHeatmap()">
-                        <label class="form-check-label" for="heatmapUseLocalExtrema">Use local extrema</label> <span class="tutorial" data-toggle="tooltip" data-placement="right" data-html="true" title="If the heatmap should only take into account what is currently visible on the map. <br><br><strong>ON:</strong> Red spots mark the maximum of the data points <em>currently visible on the map</em>.<br><br><strong>OFF:</strong> Red spots mark the <em>global maximum</em>.">(?)</span>
-                      </div>
-                    </div>
-                    <button class="btn btn-primary" ng-click="dbg()">Debug</button>
-                  </form>
+                  <h5 class="card-title">Costumize</h5>
+                  <button class="btn btn-primary" ng-click="toggleSettings()">Show/Hide Settings</button>
+                  <button class="btn btn-primary" ng-click="dbg()">Debug</button>
                 </div>
               </div>
             </div>

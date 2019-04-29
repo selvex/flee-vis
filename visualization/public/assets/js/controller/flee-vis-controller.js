@@ -124,6 +124,10 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       heatmapVis.reset();
       $scope.marker = [];
   
+      $scope.dataSet = new TimedData(response.data.data);
+      $scope.dataSet.prepareLocationAndLinkData();
+  
+      let last_step = $scope.dataSet.lastStep();
       let max_location = response.data.meta.maxForLocation;
       let max_link = response.data.meta.maxForLink;
       let sim_length = response.data.data.length;
@@ -141,16 +145,14 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       const scaled_max_actor_count = scalingMethod.scale(max_location);
       heatmapVis.setMaxMin(scaled_max_actor_count);
       circleVis.setRadiusMultiplier($scope.maxRadius / scaled_max_actor_count);
-      
-      circleVis.setupLinkThresholds(max_link);
-      circleVis.setupCircleThresholds(max_location);
+  
+      circleVis.setupGlobalThresholds($scope.dataSet);
       
       mapManager.map.panTo(response.data.meta.center);
   
       $scope.startDate = new Date(response.data.meta.start_date);
       $scope.currentDate = $scope.startDate;
       
-      $scope.dataSet = new TimedData(response.data.data);
       let now = $scope.dataSet.getCurrentData();
       for (let i = 0; i < now.locations.length; i++)
       {
@@ -256,8 +258,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
     heatmapVis.setMaxMin(scaled_max_actor_count);
     circleVis.setRadiusMultiplier($scope.maxRadius / scaled_max_actor_count);
   
-    circleVis.setupLinkThresholds($scope.meta.maxForLink);
-    circleVis.setupCircleThresholds($scope.meta.maxForLocation);
+    circleVis.setupGlobalThresholds($scope.dataSet);
     $scope.myUpdateData();
   };
   
@@ -279,15 +280,16 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
     heatmapVis.setMaxMin(scaled_max_actor_count);
     circleVis.setRadiusMultiplier($scope.maxRadius / scaled_max_actor_count);
   
-    circleVis.setupLinkThresholds($scope.meta.maxForLink);
-    circleVis.setupCircleThresholds($scope.meta.maxForLocation);
+    circleVis.setupGlobalThresholds($scope.dataSet);
     $scope.myUpdateData();
   };
   
   $scope.toggleSettings = function() {
     $scope.showSettings = !$scope.showSettings;
     // invalidate map size after toggling settings to prevent weird behaviour
-    $timeout($scope.updateMap, 50);
+    $timeout($scope.updateMap, 50).then(function() {
+      $('.tutorial').tooltip();
+    });
   };
   
   /**

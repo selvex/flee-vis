@@ -28,8 +28,11 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
   $scope.ready = false;
   $scope.startDate = new Date("2019-02-29");
   $scope.currentDate = $scope.startDate;
-  $scope.simulationSpeed = 15.0;
   $scope.showSettings = true;
+  $scope.collapse = {};
+  $scope.timelinePromise = new Promise(function(resolve, reject) {
+    resolve();
+  });
   /**
    * Two options:
    * - using circle markers
@@ -67,7 +70,8 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
     logisticGrowth: {
       internal: {},
       midPointDeviation: 12
-    }
+    },
+    simulationSpeed: 15.0
   };
   
   $scope.settings = {
@@ -87,7 +91,8 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
     logisticGrowth: {
       internal: {},
       midPointDeviation: $scope.defaultSettings.logisticGrowth.midPointDeviation
-    }
+    },
+    simulationSpeed: $scope.defaultSettings.simulationSpeed
   };
   
   $scope.fetchAvailableSimulations = function() {
@@ -363,6 +368,13 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
     mapManager.map.setView([location.lat, location.lng]);
   };
   
+  $scope.updateSimulationSpeed = function() {
+    if ($scope.playing)
+    {
+      $scope.stop();
+    }
+  };
+  
   // Timeline related functions
   /**
    * Advance the time step by one; internal representation gets updated and then the scope update method is called.
@@ -419,10 +431,10 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
     if (!$scope.playing)
     {
       $scope.playing = true;
-      var promise = $interval(function() {
+      $scope.timelinePromise = $interval(function() {
         if (!$scope.playing)
         {
-          $interval.cancel(promise);
+          $interval.cancel($scope.timelinePromise);
           return;
         }
         
@@ -430,10 +442,10 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
         
         if ($scope.dataSet.end())
         {
-          $interval.cancel(promise);
+          $scope.stop();
         }
-      }, $scope.msPerTick / $scope.simulationSpeed);
-      promise.then(function() {
+      }, $scope.msPerTick / $scope.settings.simulationSpeed);
+      $scope.timelinePromise.then(function() {
         $scope.playing = false;
       }).catch(function() {
         $scope.playing = false;

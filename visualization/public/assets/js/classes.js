@@ -92,15 +92,37 @@ class TimedData
     return this.buildConfig(this.internal[this.endStep]);
   }
   
+  getPreviousStep()
+  {
+    if (this.currentStep === 0) return this.buildConfig(this.internal[this.currentStep]);
+    return this.buildConfig(this.internal[this.currentStep - 1]);
+  }
+  
   prepareLocationAndLinkData()
   {
     this.locationValues = new Set();
     this.linkValues = new Set();
+    this.maxDiff = -1;
     for (let i = 0; i < this.internal.length; i++)
     {
       for (let j = 0; j < this.internal[i]["locations"].length; j++)
       {
         this.locationValues.add(this.internal[i]["locations"][j].refugees);
+        if (i > 0)
+        {
+          let previous = this.internal[i - 1]["locations"][j].refugees;
+          let current = this.internal[i]["locations"][j].refugees;
+          let difference = current - previous;
+          this.internal[i]["locations"][j].difference = difference;
+          if (Math.abs(difference) > this.maxDiff)
+          {
+            this.maxDiff = Math.abs(difference);
+          }
+        }
+        else
+        {
+          this.internal[i]["locations"][j].difference = 0;
+        }
       }
       for (let j = 0; j < this.internal[i]["links"].length; j++)
       {
@@ -113,6 +135,7 @@ class TimedData
     
     this.locationValues.sort((a, b) => a - b);
     this.linkValues.sort((a, b) => a - b);
+    console.log(this.maxDiff);
   }
 }
 
@@ -132,7 +155,7 @@ class HeatmapManager
     this.layer = layer;
     this.defaultConfig = {
       max: max,
-      min: 0,
+      min: 1,
       data: []
     };
     this.scalingMethod = new ScalingTool();
@@ -186,9 +209,9 @@ class HeatmapManager
    * @param max Max value of the heatmap (results in red spot)
    * @param min Min value of heatmap. Places with values lower then this are not rendered.
    */
-  setMaxMin(max = 10000, min = 0)
+  setMaxMin(max = 10000, min = 1)
   {
-    this.defaultConfig.max = max;
+    this.defaultConfig.max = this.scalingMethod.scale(max);
     this.defaultConfig.min = min;
   }
   
@@ -361,11 +384,12 @@ class CircleVisManager
   
   /**
    * Set the default radius multiplier.
-   * @param radiusMultiplier {int} Radius multiplier to use.
+   * @param maxRadius maximum radius for a circle
+   * @param maxActorCount maximum amount of actors at one location
    */
-  setRadiusMultiplier(radiusMultiplier)
+  setRadiusMultiplier(maxRadius, maxActorCount)
   {
-    this.defaultRadiusMultiplier = radiusMultiplier;
+    this.defaultRadiusMultiplier = maxRadius / this.scalingMethod.scale(maxActorCount);
   }
   
   /**
@@ -534,6 +558,42 @@ class CircleVisManager
   }
 }
 
+/**
+ * Contains functions for everything related to the difference set visualization.
+ */
+class DifferenceSetManager extends HeatmapManager
+{
+  /**
+   * Update the heatmap visualization with the data given in the locations array
+   * @param locations JS array containing all locations to be displayed. Locations need to contain
+   * the fields: lat, lng, refugees. See flee-vis.js for field definitions.
+   */
+  updateHeatmap(locations)
+  {
+    let that = this;
+    const scaled_locations = locations.map(function(location, index) {
+      let scaled_location = Object.create(location);
+      scaled_location.difference = that.scalingMethod.scaleDifference(Math.abs(location.difference));
+      return scaled_location;
+    });
+    this.layer.setData(this.buildConfig(scaled_locations));
+  }
+  
+  setMaxMin(max = 10000, min = 1)
+  {
+    this.defaultConfig.max = this.scalingMethod.scaleDifference(max);
+    this.defaultConfig.min = min;
+  }
+  
+  reconfigure(cfg)
+  {
+    let mcfg = Object.create(cfg);
+    mcfg.valueField = "difference";
+    this.layer.reconfigure(mcfg);
+  }
+}
+
+
 class ScalingTool
 {
   constructor()
@@ -550,6 +610,12 @@ class ScalingTool
   scaleLink(value)
   {
     console.warn("Default scaleLink called");
+    return this.scale(value);
+  }
+  
+  scaleDifference(value)
+  {
+    console.warn("Default scaleDifference");
     return this.scale(value);
   }
   
@@ -572,6 +638,11 @@ class LogScaling extends ScalingTool
   }
   
   scaleLink(value)
+  {
+    return this.scale(value);
+  }
+  
+  scaleDifference(value)
   {
     return this.scale(value);
   }
@@ -602,6 +673,11 @@ class LogisticGrowth extends ScalingTool
     this.linkConfig = config;
   }
   
+  setDifferenceConfig(config)
+  {
+    this.diffConfig = config;
+  }
+  
   scale(value)
   {
     return this.calculate(value, this.config.ceiling, this.config.growthRate, this.config.midPoint);
@@ -610,6 +686,11 @@ class LogisticGrowth extends ScalingTool
   scaleLink(value)
   {
     return this.calculate(value, this.linkConfig.ceiling, this.linkConfig.growthRate, this.linkConfig.midPoint);
+  }
+  
+  scaleDifference(value)
+  {
+    return this.calculate(value, this.diffConfig.ceiling, this.diffConfig.growthRate, this.diffConfig.midPoint);
   }
   
   setParameters(ceiling, growthRate, midPoint)
@@ -628,6 +709,7 @@ class LogisticGrowth extends ScalingTool
   
   calculate(value, ceiling, growthRate, offsetParameter)
   {
+    if (value === 0) return 0;
     let result = ceiling / (1 + Math.exp(-growthRate * (value - offsetParameter)));
     //console.log(result);
     //console.log(value, ceiling, growthRate, offsetParameter);

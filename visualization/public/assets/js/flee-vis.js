@@ -32,7 +32,7 @@ class MapManager
       markerColor: 'blue'
     });
   
-    let cfg =
+    let heatmapConfig =
       {
         "radius": 1,
         "maxOpacity": .8,
@@ -47,7 +47,23 @@ class MapManager
         valueField: 'refugees'
       };
   
-    this.heatmapLayer = new HeatmapOverlay(cfg);
+    let differenceSetConfig =
+      {
+        "radius": 1,
+        "maxOpacity": .8,
+        // scales the radius based on map zoom
+        "scaleRadius": true,
+        "useLocalExtrema": false,
+        // which field name in your data represents the latitude - default "lat"
+        latField: 'lat',
+        // which field name in your data represents the longitude - default "lng"
+        lngField: 'lng',
+        // which field name in your data represents the data value - default "value"
+        valueField: 'difference'
+      };
+  
+    this.heatmapLayer = new HeatmapOverlay(heatmapConfig);
+    this.differenceSetLayer = new HeatmapOverlay(differenceSetConfig);
   
     this.map = L.map('map', {
       center: new L.LatLng(16.3700359, -2.2900239),
@@ -62,6 +78,7 @@ class MapManager
   
     let overlayLayers = {
       "Heatmap": this.heatmapLayer,
+      "Difference Set": this.differenceSetLayer,
       "Cities": this.cities,
       "Camps": this.camps,
       "Circles": this.circleVisLayer,

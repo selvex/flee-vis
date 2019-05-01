@@ -184,15 +184,51 @@
                       </div>
                       <hr>
                       <div class="form-group" ng-if="settings.scalingMethod === 'logisticGrowth'">
+
                         <h6>Customize logistic growth function</h6>
-                        <label for="logisticGrowthCeiling">Ceiling</label>
-                        <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.location.ceiling" type="number" id="logisticGrowthCeiling" ng-change="updateLogistic()">
+                        <ul class="nav nav-tabs mb-2" id="logistic-growth-config-tabs" role="tablist">
+                          <li class="nav-item">
+                            <a class="nav-link active" id="logistic-location-tab" data-toggle="tab" href="#logistic-location-config" role="tab" aria-controls="home" aria-selected="true">Locations</a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" id="logistic-link-tab" data-toggle="tab" href="#logistic-link-config" role="tab" aria-controls="profile" aria-selected="false">Links</a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" id="logistic-difference-tab" data-toggle="tab" href="#logistic-difference-config" role="tab" aria-controls="contact" aria-selected="false">Differences</a>
+                          </li>
+                        </ul>
+                        <div class="tab-content" id="myTabContent">
+                          <div class="tab-pane show active" id="logistic-location-config" role="tabpanel" aria-labelledby="location-tab">
+                            <label for="logisticGrowthLocationCeiling">Ceiling</label>
+                            <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.location.ceiling" type="number" id="logisticGrowthLocationCeiling" ng-change="updateLogistic()">
 
-                        <label for="logisticGrowthMidPoint">Offset</label>
-                        <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.location.midPoint" type="number" id="logisticGrowthMidPoint" ng-change="updateLogistic()">
+                            <label for="logisticGrowthLocationMidPoint">Offset</label>
+                            <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.location.midPoint" type="number" id="logisticGrowthLocationMidPoint" ng-change="updateLogistic()">
 
-                        <label for="logisticGrowthGrowthRate">Growth Rate</label>
-                        <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.location.growthRate" type="number" step="any" id="logisticGrowthGrowthRate" ng-change="updateLogistic()">
+                            <label for="logisticGrowthLocationGrowthRate">Growth Rate</label>
+                            <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.location.growthRate" type="number" step="any" id="logisticGrowthLocationGrowthRate" ng-change="updateLogistic()">
+                          </div>
+                          <div class="tab-pane" id="logistic-link-config" role="tabpanel" aria-labelledby="link-tab">
+                            <label for="logisticGrowthLinkCeiling">Ceiling</label>
+                            <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.link.ceiling" type="number" id="logisticGrowthLinkCeiling" ng-change="updateLogistic()">
+
+                            <label for="logisticGrowthLinkMidPoint">Offset</label>
+                            <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.link.midPoint" type="number" id="logisticGrowthLinkMidPoint" ng-change="updateLogistic()">
+
+                            <label for="logisticGrowthLinkGrowthRate">Growth Rate</label>
+                            <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.link.growthRate" type="number" step="any" id="logisticGrowthLinkGrowthRate" ng-change="updateLogistic()">
+                          </div>
+                          <div class="tab-pane" id="logistic-difference-config" role="tabpanel" aria-labelledby="difference-tab">
+                            <label for="logisticGrowthDifferenceCeiling">Ceiling</label>
+                            <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.difference.ceiling" type="number" id="logisticGrowthDifferenceCeiling" ng-change="updateLogistic()">
+
+                            <label for="logisticGrowthDifferenceMidPoint">Offset</label>
+                            <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.difference.midPoint" type="number" id="logisticGrowthDifferenceMidPoint" ng-change="updateLogistic()">
+
+                            <label for="logisticGrowthDifferenceGrowthRate">Growth Rate</label>
+                            <input class="form-control form-control-sm" ng-model="settings.logisticGrowth.internal.difference.growthRate" type="number" step="any" id="logisticGrowthDifferenceGrowthRate" ng-change="updateLogistic()">
+                          </div>
+                        </div>
                       </div>
                       <hr ng-if="settings.scalingMethod === 'logisticGrowth'">
                     </div>
@@ -213,11 +249,13 @@
                     <th>Name</th>
                     <th>Population</th>
                     <th>Refugees</th>
+                    <th>Difference</th>
                   </tr>
                   <tr ng-repeat="location in locations" ng-if="!location.camp">
                     <td><a href="#map" ng-click="zoomTo($index)">{{ location.name }}</a></td>
                     <td>{{ location.pop }}</td>
                     <td>{{ location.refugees }}</td>
+                    <td>{{ location.difference }}</td>
                   </tr>
                 </table>
               </div>
@@ -229,11 +267,13 @@
                     <th>Name</th>
                     <th>Capacity</th>
                     <th>Refugees</th>
+                    <th>Difference</th>
                   </tr>
                   <tr ng-repeat="location in locations" ng-if="location.camp">
                     <td><a href="#map" ng-click="zoomTo($index)">{{ location.name }}</a></td>
                     <td>{{ location.capacity }}</td>
                     <td class="{{ location.capacity - 50 <= location.refugees ? 'text-danger' : '' }}">{{ location.refugees }}</td>
+                    <td>{{ location.difference }}</td>
                   </tr>
                 </table>
               </div>

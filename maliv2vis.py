@@ -6,6 +6,8 @@ import numpy as np
 import outputanalysis.analysis as a
 import sys
 import visualization.vis
+from datetime import datetime
+from datetime import timedelta
 
 def linkBF(e):
   # bing based
@@ -215,6 +217,9 @@ if __name__ == "__main__":
   t_retrofitted = 0
 
   visoutput = visualization.vis.VisManager()
+  start_date = datetime(2012, 2, 29)
+  current_date = datetime(2012, 2, 29)
+
   for t in range(0,end_time):
 
     e.refresh_conflict_weights()
@@ -330,9 +335,10 @@ if __name__ == "__main__":
       output += ",0,0,0,0,0,0,0"
 
     print(output)
-    assert t == visoutput.addTimeStep()
+    assert t == visoutput.addTimeStep(current_date.strftime("%Y-%m-%d"))
     visoutput.addLocationDataAtTime(t, e.locations)
+    current_date = current_date + timedelta(days=1)
 
-  visoutput.setMetaData([16.3700359, -2.2900239], "2012-02-29", "Mali", "Mali visualization")
+  visoutput.setMetaData([16.3700359, -2.2900239], start_date.strftime("%Y-%m-%d"), "Mali", "Mali visualization")
   visoutput.saveVisData()
 

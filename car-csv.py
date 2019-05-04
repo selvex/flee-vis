@@ -6,6 +6,8 @@ import numpy as np
 import outputanalysis.analysis as a
 import sys
 import visualization.vis
+from datetime import datetime
+from datetime import timedelta
 
 def AddInitialRefugees(e, d, loc):
   """ Add the initial refugees to a location, using the location name"""
@@ -100,6 +102,9 @@ if __name__ == "__main__":
   refugees_raw = 0 #raw (interpolated) data from TOTAL UNHCR refugee count only.
 
   visoutput = visualization.vis.VisManager(SimulationSettings.SimulationSettings.DefaultVisPath / "car.json")
+  start_date = datetime(2013, 12, 1)
+  current_date = datetime(2013, 12, 1)
+
   for t in range(0,end_time):
 
     ig.AddNewConflictZones(e,t)
@@ -161,8 +166,9 @@ if __name__ == "__main__":
 
     print(output)
 
-    assert t == visoutput.addTimeStep()
+    assert t == visoutput.addTimeStep(current_date.strftime("%Y-%m-%d"))
     visoutput.addLocationDataAtTime(t, e.locations)
+    current_date = current_date + timedelta(days=1)
 
-  visoutput.setMetaData([5.725311, 19.488373], "2013-12-01", "CAR", "CAR visualization")
+  visoutput.setMetaData([5.725311, 19.488373], start_date.strftime("%Y-%m-%d"), "CAR", "CAR visualization")
   visoutput.saveVisData()

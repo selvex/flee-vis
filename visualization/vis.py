@@ -14,15 +14,16 @@ class VisManager:
     self.maxForLocation = -1
     self.maxForLink = -1
 
-  def visFormat(self):
+  def visFormat(self, display=""):
     return {
       'actors': [],
       'locations': [],
-      'links': []
+      'links': [],
+      'display': display
     }
 
-  def addTimeStep(self):
-    self.data.append(self.visFormat())
+  def addTimeStep(self, display=""):
+    self.data.append(self.visFormat(display))
     return len(self.data) - 1
 
   def addLocationDataAtTime(self, t, locations):

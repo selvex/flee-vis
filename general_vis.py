@@ -4,6 +4,9 @@ import numpy as np
 import outputanalysis.analysis as a
 import visualization.vis
 from flee import InputGeography
+from datetime import datetime
+from datetime import timedelta
+
 
 """
 Generation 1 code. Incorporates only distance, travel always takes one day.
@@ -38,8 +41,11 @@ if __name__ == "__main__":
   refugee_debt = 0
   refugees_raw = 0 #raw (interpolated) data from TOTAL UNHCR refugee count only.
 
+  # Visualization
   visoutput = visualization.vis.VisManager(flee.SimulationSettings.SimulationSettings.DefaultVisPath / "general.json")
-
+  start_date = datetime(2009, 12, 24)
+  current_date = datetime(2009, 12, 24)
+  # Visualization end
 
   for t in range(0,end_time):
     ig.AddNewConflictZones(e, t)
@@ -63,10 +69,15 @@ if __name__ == "__main__":
 
     e.enact_border_closures(t)
     e.evolve()
-    assert t == visoutput.addTimeStep()
+    # Visualization
+    assert t == visoutput.addTimeStep(current_date.strftime("%Y-%m-%d"))
     visoutput.addLocationDataAtTime(t, e.locations)
+    current_date = current_date + timedelta(days=1)
+    # Visualization end
 
-  visoutput.setMetaData([48.208176,16.373819], "2009-12-24", "General", "General visualization")
+  # Visualization
+  visoutput.setMetaData([48.208176,16.373819], start_date.strftime("%Y-%m-%d"), "General", "General visualization")
   visoutput.saveVisData()
+  # Visualization end
   #79 746 24601 14784 38188
 

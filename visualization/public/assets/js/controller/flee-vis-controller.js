@@ -161,7 +161,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
       
       mapManager.map.panTo(response.data.meta.center);
   
-      $scope.startDate = new Date(response.data.meta.start_date);
+      $scope.startDate = response.data.meta.start_date;
       $scope.currentDate = $scope.startDate;
       
       let now = $scope.dataSet.getCurrentData();
@@ -198,7 +198,7 @@ app.controller('fleeVisController', ['$scope', '$http', '$interval', '$timeout',
     }
     $scope.locations = $scope.dataSet.getCurrentData().locations;
     $scope.links = $scope.dataSet.getCurrentData().links;
-    $scope.currentDate = $scope.simStepToDate();
+    $scope.currentDate = $scope.dataSet.getCurrentData().display;
     
     circleVis.reset();
   

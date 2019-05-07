@@ -97,8 +97,8 @@ app.get('/data/:file', function(req, res) {
 });
 
 var server = app.listen(config.port, function() {
-  logger.log('Flee Vis app listening on port ' + config.port + '!');
-  logger.log("Visit localhost:" + config.port + " to start.");
+  console.log('Flee Vis app listening on port ' + config.port + '!');
+  console.log("Visit localhost:" + config.port + " to start.");
 });
 app.use(express.static('public'));
 

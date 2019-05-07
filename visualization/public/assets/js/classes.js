@@ -135,7 +135,6 @@ class TimedData
     
     this.locationValues.sort((a, b) => a - b);
     this.linkValues.sort((a, b) => a - b);
-    console.log(this.maxDiff);
   }
 }
 
@@ -548,14 +547,6 @@ class CircleVisManager
     this.circles = [];
     this.lines = [];
   }
-  
-  /**
-   * Sanity check.
-   */
-  test()
-  {
-    console.log("Called");
-  }
 }
 
 /**
@@ -603,19 +594,19 @@ class ScalingTool
   
   scale(value)
   {
-    console.warn("Default scaling applied, returning value as-is.");
+    //console.warn("Default scaling applied, returning value as-is.");
     return value;
   }
   
   scaleLink(value)
   {
-    console.warn("Default scaleLink called");
+    //console.warn("Default scaleLink called");
     return this.scale(value);
   }
   
   scaleDifference(value)
   {
-    console.warn("Default scaleDifference");
+    //console.warn("Default scaleDifference");
     return this.scale(value);
   }
   

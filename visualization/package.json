@@ -1,0 +1,27 @@
+{
+  "name": "flee-vis",
+  "version": "0.0.1",
+  "description": "HTML framework for visualizing refugee movements simulates by the flee simulation system",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "flee",
+    "heatmap",
+    "visualization"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.4",
+    "heatmap.js": "^2.0.5",
+    "leaflet": "^1.4.0"
+  },
+  "devDependencies": {
+    "@fortawesome/fontawesome-free": "^5.8.1",
+    "jquery": "^3.3.1",
+    "leaflet-polylineoffset": "^1.1.1",
+    "leaflet.awesome-markers": "^2.0.5"
+  }
+}

@@ -1,10 +1,13 @@
-from flee import flee
+from flee import flee, SimulationSettings
 from datamanager import handle_refugee_data
 from datamanager import DataTable #DataTable.subtract_dates()
 from flee import InputGeography
 import numpy as np
 import outputanalysis.analysis as a
 import sys
+import visualization.vis
+from datetime import datetime
+from datetime import timedelta
 
 def AddInitialRefugees(e, d, loc):
   """ Add the initial refugees to a location, using the location name"""
@@ -98,6 +101,10 @@ if __name__ == "__main__":
   refugee_debt = 0
   refugees_raw = 0 #raw (interpolated) data from TOTAL UNHCR refugee count only.
 
+  visoutput = visualization.vis.VisManager(SimulationSettings.SimulationSettings.DefaultVisPath / "car.json")
+  start_date = datetime(2013, 12, 1)
+  current_date = datetime(2013, 12, 1)
+
   for t in range(0,end_time):
 
     ig.AddNewConflictZones(e,t)
@@ -157,5 +164,11 @@ if __name__ == "__main__":
       output += ",0,0,0,0,0,0,0"
       #output_string += ",0"
 
-
     print(output)
+
+    assert t == visoutput.addTimeStep(current_date.strftime("%Y-%m-%d"))
+    visoutput.addLocationDataAtTime(t, e.locations)
+    current_date = current_date + timedelta(days=1)
+
+  visoutput.setMetaData([5.725311, 19.488373], start_date.strftime("%Y-%m-%d"), "CAR", "CAR visualization")
+  visoutput.saveVisData()

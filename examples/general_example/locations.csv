@@ -1,0 +1,8 @@
+#name,region,country,lat,lng,location_type,conflict_data,pop/cap
+"Paris","Paris","France",48.856613,2.352222,"conflict_zone",0,100
+"Frankfurt","Frankfurt","Germany",50.110924,8.682127,"conflict_zone",20,50
+"Mailand","Mailand","Italy",45.463619,9.188120,"conflict_zone",30,20
+"Wien","Wien","Austria",48.208176,16.373819,"conflict_zone",40,30
+"Prag","Prag","Tschechien",50.087811,14.420460,"town",0,10
+"Bratislava","Bratislava","Slowakia",48.148598,17.107748,"town",0,20
+"Zurich","Zurich","Schwitzerland",47.376888,8.541694,"camp",0,70

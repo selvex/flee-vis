@@ -1,5 +1,6 @@
 import sys
 import csv
+from pathlib import Path
 
 class SimulationSettings:
   Softening = 0.0
@@ -27,6 +28,9 @@ class SimulationSettings:
   AwarenessLevel = 1 #-1, no weighting at all, 0 = road only, 1 = location, 2 = neighbours, 3 = region.
   UseDynamicAwareness = False # Refugees become smarter over time.
   UseIDPMode = False
+
+  CreateVisData = True
+  DefaultVisPath = Path("visualization/public/assets/data/test")
 
   def ReadFromCSV(csv_name):
     """
